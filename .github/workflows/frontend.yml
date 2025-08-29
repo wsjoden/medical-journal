@@ -14,9 +14,12 @@ jobs:
                 registry: registry.cloud.cbh.kth.se
                 username: ${{ secrets.DOCKER_USERNAME_FRONTEND }}
                 password: ${{ secrets.DOCKER_PASSWORD_FRONTEND }}
+            - name: checkout
+              uses: actions/checkout@v2
             - name: Build and push
               uses: docker/build-push-action@v5
               with:
+                context: ./frontend
                 file: ./frontend/Dockerfile
                 push: true
                 tags: ${{ secrets.DOCKER_TAG_FRONTEND }}
