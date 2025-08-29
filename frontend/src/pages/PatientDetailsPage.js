@@ -1,0 +1,124 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import '../styles/PatientDetailsPage.css';
+import { apiRequest } from '../services/RESTService';
+
+function PatientDetailsPage() {
+    const { id } = useParams();
+    const [patient, setPatient] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        apiRequest('GET', `/user/details/${id}`, {})
+            .then(response => {
+                console.log('Fetched patient data:', response.data);
+                setPatient(response.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching patient details:', error);
+                setError('Failed to fetch patient details.');
+                setLoading(false);
+            });
+    }, [id]);
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+    if (!patient) {
+        return <div>No patient data available.</div>;
+    }
+
+    const handleNewObservationClick = () => {
+        navigate(`/observation/new/patient/${patient.id}`);
+    };
+
+    const handleNewEncounterClick = () => {
+        navigate(`/encounter/new/patient/${patient.id}`);
+    };
+
+    const handleNewDiagnoseClick = () => {
+        navigate(`/diagnose/new/patient/${patient.id}`);
+    };
+
+    return (
+        <div className="patient-details-page">
+            <h1>Patient Details</h1>
+            <div className="patient-info">
+                <h2>{`${patient.firstName} ${patient.lastName}`}</h2>
+                <p><strong>SSN:</strong> {patient.ssn}</p>
+                <p><strong>Email:</strong> {patient.email}</p>
+                <div className="current-diagnose">
+                    <h3>Current Diagnose</h3>
+                    {patient.currentDiagnose ? (
+                        <>
+                            <p><strong>Details:</strong> {patient.currentDiagnose}</p>
+                        </>
+                    ) : (
+                        <p>No current diagnose available.</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="patient-observations">
+                <h2>Observations</h2>
+                {patient.observationList && patient.observationList.length > 0 ? (
+                    patient.observationList.map((observation, index) => (
+                        <div key={index} className="observation">
+                            <p><strong>Date:</strong> {observation.observationDate}</p>
+                            <p><strong>Details:</strong> {observation.observation}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No observations found.</p>
+                )}
+                <button onClick={handleNewObservationClick} className="btn btn-primary mt-3">
+                    Add New Observation
+                </button>
+            </div>
+
+            <div className="patient-encounters">
+                <h2>Encounters</h2>
+                {patient.encounterList && patient.encounterList.length > 0 ? (
+                    patient.encounterList.map((encounter, index) => (
+                        <div key={index} className="encounter">
+                            <p><strong>Date:</strong> {encounter.encounterDate}</p>
+                            <p><strong>Details:</strong> {encounter.notes}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No encounters found.</p>
+                )}
+                <button onClick={handleNewEncounterClick} className="btn btn-primary mt-3">
+                    Add New Encounter
+                </button>
+            </div>
+
+            <div className="diagnose-history">
+                <h2>Diagnose History</h2>
+                {patient.diagnoseList && patient.diagnoseList.length > 0 ? (
+                    patient.diagnoseList.map((diagnose, index) => (
+                        <div key={index} className="diagnose">
+                            <p><strong>Date:</strong> {diagnose.diagnosisDate}</p>
+                            <p><strong>Details:</strong> {diagnose.diagnose}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>No diagnose history found.</p>
+                )}
+                <button onClick={handleNewDiagnoseClick} className="btn btn-primary mt-3">
+                    Add New Diagnose
+                </button>
+            </div>
+        </div>
+    );
+}
+
+export default PatientDetailsPage;

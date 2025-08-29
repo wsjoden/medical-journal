@@ -1,0 +1,142 @@
+services:
+  jwt-service:
+    build: ./services/Patient_App_Jwt_Service
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./services/Patient_App_Jwt_Service:/app
+    command: /bin/sh -c "java -jar /app/target/jwt-service.jar"
+
+  keycloak-service:
+    image: quay.io/keycloak/keycloak:25.0.1
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8080
+      KC_HOSTNAME_URL: http://localhost:8080
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true
+      KC_HTTP_RELATIVE_PATH: /
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    volumes:
+      - ./keycloak/:/opt/keycloak/data/import/
+      - keycloak_data:/opt/keycloak/data 
+      - ./keycloak/themes/:/opt/keycloak/themes/
+      - ./keycloak/extensions/target/extensions-1.0-SNAPSHOT.jar:/opt/keycloak/providers/extensions-1.0-SNAPSHOT.jar
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ['CMD-SHELL', '[ -f /tmp/HealthCheck.java ] || echo "public class HealthCheck { public static void main(String[] args) throws java.lang.Throwable { System.exit(java.net.HttpURLConnection.HTTP_OK == ((java.net.HttpURLConnection)new java.net.URL(args[0]).openConnection()).getResponseCode() ? 0 : 1); } }" > /tmp/HealthCheck.java && java /tmp/HealthCheck.java http://localhost:8080/auth/health/live']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+
+  medical-data-service:
+    build: ./services/Patient_App_Medical_Data_Service
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./services/Patient_App_Medical_Data_Service:/app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/patient_journal_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      db:
+        condition: service_healthy
+    command: /bin/sh -c "while ! nc -z db 3306; do sleep 1; done; java -jar /app/target/medical-data-service.jar"
+
+  user-service:
+    build: ./services/Patient_App_User_Service
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./services/Patient_App_User_Service:/app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/patient_journal_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      db:
+        condition: service_healthy
+    command: /bin/sh -c "while ! nc -z db 3306; do sleep 1; done; java -jar /app/target/user-service.jar"
+
+  message-service:
+    build: ./services/Patient_App_Message_Service
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./services/Patient_App_Message_Service:/app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/patient_journal_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      db:
+        condition: service_healthy
+    command: /bin/sh -c "while ! nc -z db 3306; do sleep 1; done; java -jar /app/target/message-service.jar"
+
+  nodejs-server:
+    build: ./services/Patient_App_Image_Service
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./services/Patient_App_Image_Service:/app
+    depends_on:
+      - db
+
+  frontend:
+    build: ./services/Patient_App_Frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./services/Patient_App_Frontend:/app
+    depends_on:
+      - jwt-service
+      - medical-data-service
+      - user-service
+      - message-service
+      - search-service 
+
+  search-service:
+    build:
+      context: ./services/Patient_App_Search_Service
+      dockerfile: src/main/docker/Dockerfile.jvm
+    ports:
+      - "8086:8086" 
+    volumes:
+      - ./services/Patient_App_Search_Service:/app
+    environment:
+      QUARKUS_DATASOURCE_URL: jdbc:mysql://db:3306/patient_journal_app?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      QUARKUS_DATASOURCE_USERNAME: root
+      QUARKUS_DATASOURCE_PASSWORD: root
+    command: /bin/sh -c "java -jar /app/target/patient_app_search_service-1.0-SNAPSHOT.jar"
+    depends_on:
+      - db
+      - medical-data-service  
+      - user-service
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: patient_journal_app
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  db_data:
+  keycloak_data:

@@ -1,0 +1,42 @@
+.register-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-columns {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.left-column, .right-column {
+    flex: 0 0 48%;
+    box-sizing: border-box;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.select {
+   position: relative;
+}
+
+.select select {
+    width: 100%;
+    appearance: none;
+    padding-right: 30px;
+}
+
+.dropdown{
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}

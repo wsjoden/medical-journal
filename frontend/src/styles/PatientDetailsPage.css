@@ -1,0 +1,30 @@
+.patient-details-page {
+    padding: 20px;
+    background-color: #f0f0f0;
+    min-height: 100vh;
+}
+
+.patient-info, .patient-observations, .patient-encounters, .diagnose-history {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.patient-info h2, .patient-observations h2, .patient-encounters h2, .diagnose-history h2 {
+    margin-bottom: 10px;
+}
+
+.observation, .encounter, .diagnose {
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.observation:first-child, .encounter:first-child, .diagnose:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}

@@ -1,0 +1,106 @@
+.profile-page {
+    padding: 20px;
+    background-color: #f0f0f0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+}
+
+.header h1 {
+    color: #333;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.button {
+    width: 100%;
+    padding: 10px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+/* Details Button */
+.details-button {
+    background-color: #62d0da;
+    width: 100px;
+    margin-right: 10px;
+}
+
+.details-button:hover {
+    background-color: #204245;
+}
+
+/* Edit Button */
+.edit-button {
+    background-color: #62da62;
+}
+
+.edit-button:hover {
+    background-color: #50c050;
+}
+
+/* Save Button */
+.save-button {
+    background-color: #007bff;
+}
+
+.save-button:hover {
+    background-color: #0056b3;
+}
+
+/* Delete Button */
+.delete-button {
+    background-color: #e74c3c; /* Red color */
+    width: 100%;
+    margin-top: 10px;
+}
+
+.delete-button:hover {
+    background-color: #c0392b; /* Darker red on hover */
+}
+
+.delete-button:active {
+    background-color: #992d22;
+}
+
+.delete-button:disabled {
+    background-color: #ccc; /* Disabled state color */
+    cursor: not-allowed;
+}

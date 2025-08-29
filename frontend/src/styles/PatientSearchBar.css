@@ -1,0 +1,103 @@
+.search-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.basic-search {
+    position: relative;
+    width: 100%;
+}
+
+.search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.search-input-container input {
+    width: 100%;
+    padding: 10px 15px;
+    padding-right: 45px; /* Add padding for the icon */
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+.search-input-container input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #888;
+}
+
+.search-icon:hover {
+    color: #007bff;
+}
+
+.advanced-search-button {
+    display: inline-block;
+    width: 100%;
+    padding: 10px;
+    font-size: 14px; /* Increased font size */
+    text-align: center;
+    color: #44484c;
+    background: none;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+.toggle-advanced-search {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.advanced-search-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Increased gap */
+    margin-top: 10px; /* Added margin */
+}
+
+.advanced-search-fields input {
+    padding: 10px; /* Increased padding */
+    font-size: 14px; /* Increased font size */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.encounter-date-label {
+    font-size: 14px; /* Increased font size */
+    margin-bottom: 5px; /* Added margin */
+}
+
+.encounter-date-input {
+    margin-top: 5px; /* Added margin */
+    margin-bottom: 10px; /* Increased margin */
+}
+
+.search-button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    background-color: #0056b3;
+}

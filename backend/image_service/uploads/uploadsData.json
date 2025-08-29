@@ -1,0 +1,18 @@
+[
+  {
+    "name": "uploader",
+    "filename": "1732997408315-broken-arm-2117980_1280.jpg",
+    "originalname": "broken-arm-2117980_1280.jpg",
+    "path": "uploads\\1732997408315-broken-arm-2117980_1280.jpg",
+    "mimetype": "image/jpeg",
+    "size": 217209
+  },
+  {
+    "name": "test",
+    "filename": "1733139498060-cervical-spine-1129431_1280.jpg",
+    "originalname": "cervical-spine-1129431_1280.jpg",
+    "path": "uploads\\1733139498060-cervical-spine-1129431_1280.jpg",
+    "mimetype": "image/jpeg",
+    "size": 127321
+  }
+]
