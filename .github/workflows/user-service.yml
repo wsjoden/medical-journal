@@ -1,4 +1,4 @@
-name: kthcloud-ci
+name: user-service
 "on":
     push:
         branches:
