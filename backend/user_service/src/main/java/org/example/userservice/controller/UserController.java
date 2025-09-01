@@ -31,9 +31,6 @@ import java.util.Optional;
 @RequestMapping("/user")
 public class UserController {
 
-    @Value("${keycloak.credentials.secret}")
-    private String keycloakSecret;
-
     private final WebClient.Builder webClientBuilder;
     private final UserService userService;
 
@@ -115,7 +112,7 @@ public class UserController {
     // }
 
     @GetMapping("/profile")
-    @PreAuthorize("hasAuthority('Patient') or hasAuthority('Doctor') or hasAuthority('Other_Staff')")
+    @PreAuthorize("hasRole('Patient') or hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<UserProfileDTO> getUserProfile(Authentication authentication) {
         System.out.println("getUserProfile() called");
 
@@ -137,7 +134,7 @@ public class UserController {
 
     // Get all users
     @GetMapping
-    @PreAuthorize("hasAuthority('Doctor') or hasAuthority('Other_Staff')")
+    @PreAuthorize("hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<List<User>> getAllUsers() {
         System.out.println("getAllUsers() called");
         return new ResponseEntity<>(userService.findAllUsers(), HttpStatus.OK);
@@ -145,7 +142,7 @@ public class UserController {
 
     // Get all patients
     @GetMapping("/patients")
-    @PreAuthorize("hasAuthority('Doctor') or hasAuthority('Other_Staff')")
+    @PreAuthorize("hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<List<User>> getAllPatients() {
         System.out.println("getAllPatients() called");
         List<User> patients = userService.findAllPatients();
@@ -157,8 +154,8 @@ public class UserController {
 
     // // Update user
     // @PutMapping("/profile/{id}")
-    // @PreAuthorize("hasAuthority('Patient') or hasAuthority('Doctor') or
-    // hasAuthority('Other_Staff')")
+    // @PreAuthorize("hasRole('Patient') or hasRole('Doctor') or
+    // hasRole('Other_Staff')")
     // public ResponseEntity<User> updateUser(
     // @RequestHeader("Authorization") String token,
     // @RequestBody UserProfileDTO userProfileDTO) {
@@ -199,7 +196,7 @@ public class UserController {
 
     // Get user details by ID
     @GetMapping("/details/{userId}")
-    @PreAuthorize("hasAuthority('Doctor') or hasAuthority('Patient')")
+    @PreAuthorize("hasRole('Doctor') or hasRole('Patient')")
     public ResponseEntity<PatientProfileDetailsDTO> getUserDetailsById(Authentication authentication,
             @PathVariable String userId) {
         System.out.println("getUserById() called with userId: " + userId);
@@ -213,7 +210,8 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else if (!(authentication.getAuthorities().stream()
                 .anyMatch(auth -> auth.getAuthority().equalsIgnoreCase("Doctor") ||
-                        auth.getAuthority().equalsIgnoreCase("ROLE_Doctor")) ||
+                        auth.getAuthority().equalsIgnoreCase("ROLE_Doctor"))
+                ||
                 requesterId.equals(userId))) {
             System.out.println("User is not authorized to view this profile");
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
