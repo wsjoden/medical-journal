@@ -24,7 +24,7 @@ public class WebConfig {
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://medical-app-frontend.app.cloud.cbh.kth.se");
         config.addAllowedOrigin("http://localhost:3000"); // For local development
-        config.addAllowedOriginPattern("*");
+        // config.addAllowedOriginPattern("*");
         config.setAllowedHeaders(Arrays.asList(
                 HttpHeaders.AUTHORIZATION,
                 HttpHeaders.CONTENT_TYPE,
