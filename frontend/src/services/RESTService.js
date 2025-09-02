@@ -4,7 +4,7 @@ const defaultBaseURL = process.env.REACT_APP_DEFAULT_API_URL || "http://localhos
 const jwtBaseURL = process.env.REACT_APP_JWT_API_URL || "http://localhost:8081";
 const userBaseURL = process.env.REACT_APP_USER_SERVICE_URL || "http://localhost:8082";
 const messagesBaseURL = process.env.REACT_APP_MESSAGES_API_URL || "http://localhost:8083";
-const medicalDataBaseURL = process.env.REACT_APP_MEDICAL_DATA_API_URL || "http://localhost:8084";
+const medicalDataBaseURL = process.env.REACT_APP_MEDICAL_DATA_URL || "http://localhost:8084";
 const imageBaseURL = process.env.REACT_APP_IMAGE_API_URL || "http://localhost:8085";
 const searchBaseURL = process.env.REACT_APP_SEARCH_API_URL || "http://localhost:8086";
 
