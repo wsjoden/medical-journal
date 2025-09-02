@@ -26,8 +26,7 @@ public class SecurityConfig {
                                                                 .jwtAuthenticationConverter(
                                                                                 jwtAuthenticationConverter())))
                                 .authorizeHttpRequests(authorize -> authorize
-                                                .requestMatchers("/user/login/", "/user/register/", "/user/webhook",
-                                                                "/user/test")
+                                                .requestMatchers("/diagnoses/test")
                                                 .permitAll()
                                                 .anyRequest().authenticated());
                 return http.build();
