@@ -34,21 +34,7 @@ public class MessageController {
     @GetMapping("/test")
     public String test() {
         System.out.println("Message service is up and running!");
-
-        System.out.println("trying to reach jwt service...");
-        String response = this.webClientBuilder.build()
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("jwt-service")
-                        .port(8081)
-                        .path("/jwt/test")
-                        .build())
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-        return "Message service is up and running! JWT service response: " + response;
+        return "Message service is up and running!";
     }
 
     // Find inbox
