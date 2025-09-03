@@ -15,7 +15,15 @@ jobs:
                 username: ${{ secrets.DOCKER_USERNAME_SEARCH }}
                 password: ${{ secrets.DOCKER_PASSWORD_SEARCH }}
             - name: checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
+            - name: Debug - List files
+              run: |
+                echo "Contents of backend/search_service/:"
+                ls -la ./backend/search_service/
+                echo "Contents of src directory:"
+                ls -la ./backend/search_service/src/ || echo "src directory not found"
+                echo "Contents of src/main:"
+                ls -la ./backend/search_service/src/main/ || echo "src/main directory not found"
             - name: Build and push
               uses: docker/build-push-action@v5
               with:
