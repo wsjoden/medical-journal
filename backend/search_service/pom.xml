@@ -39,6 +39,21 @@
             <artifactId>smallrye-jwt</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-oidc</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt</artifactId>
+        </dependency>
+
+        <dependency>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-security</artifactId>
+        </dependency>
+
         <!-- Quarkus Security (Optional) -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -60,11 +75,11 @@
         <!-- Database Dependencies -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-mysql</artifactId>
+            <artifactId>quarkus-jdbc-postgresql</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-reactive-mysql-client</artifactId>
+            <artifactId>quarkus-reactive-pg-client</artifactId>
         </dependency>
 
         <!-- REST Dependencies -->
