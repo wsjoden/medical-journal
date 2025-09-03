@@ -1,0 +1,25 @@
+name: search-service
+"on":
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+jobs:
+    docker:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                registry: registry.cloud.cbh.kth.se
+                username: ${{ secrets.DOCKER_USERNAME_SEARCH }}
+                password: ${{ secrets.DOCKER_PASSWORD_SEARCH }}
+            - name: checkout
+              uses: actions/checkout@v2
+            - name: Build and push
+              uses: docker/build-push-action@v5
+              with:
+                context: ./backend/search_service
+                file: ./backend/search_service/Dockerfile
+                push: true
+                tags: ${{ secrets.DOCKER_TAG_SEARCH }}
