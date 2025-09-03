@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const defaultBaseURL = process.env.REACT_APP_DEFAULT_API_URL || "http://localhost:8080";
-const jwtBaseURL = process.env.REACT_APP_JWT_API_URL || "http://localhost:8081";
+const defaultBaseURL = process.env.REACT_APP_DEFAULT_URL || "http://localhost:8080";
+const jwtBaseURL = process.env.REACT_APP_JWT_URL || "http://localhost:8081";
 const userBaseURL = process.env.REACT_APP_USER_SERVICE_URL || "http://localhost:8082";
-const messagesBaseURL = process.env.REACT_APP_MESSAGES_API_URL || "http://localhost:8083";
+const messagesBaseURL = process.env.REACT_APP_MESSAGES_URL || "http://localhost:8083";
 const medicalDataBaseURL = process.env.REACT_APP_MEDICAL_DATA_SERVICE_URL || "http://localhost:8084";
-const imageBaseURL = process.env.REACT_APP_IMAGE_API_URL || "http://localhost:8085";
-const searchBaseURL = process.env.REACT_APP_SEARCH_API_URL || "http://localhost:8086";
+const imageBaseURL = process.env.REACT_APP_IMAGE_URL || "http://localhost:8085";
+const searchBaseURL = process.env.REACT_APP_SEARCH_URL || "http://localhost:8086";
 
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
