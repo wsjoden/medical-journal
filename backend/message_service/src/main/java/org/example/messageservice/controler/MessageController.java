@@ -220,7 +220,7 @@ public class MessageController {
     }
 
     public UserDTO GetUserById(String userId, String token) {
-        if(userId == null) {
+        if (userId == null) {
             System.out.println("userId is null");
             return null;
         }
@@ -241,7 +241,7 @@ public class MessageController {
     }
 
     public String GetUserByUsername(String username, String token) {
-        if(username == null) {
+        if (username == null) {
             System.out.println("username is null");
             return null;
         }
