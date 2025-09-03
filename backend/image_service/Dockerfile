@@ -4,5 +4,5 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 RUN mkdir -p /app/uploads
-EXPOSE 8085
+EXPOSE 8080
 CMD ["node", "server.js"]
