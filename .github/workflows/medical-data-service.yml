@@ -12,8 +12,8 @@ jobs:
               uses: docker/login-action@v3
               with:
                 registry: registry.cloud.cbh.kth.se
-                username: ${{ secrets.DOCKER_USERNAME_MEDICAL_DATA_SERVICE }}
-                password: ${{ secrets.DOCKER_PASSWORD_MEDICAL_DATA_SERVICE }}
+                username: ${{ secrets.DOCKER_USERNAME_MEDICAL_DATA }}
+                password: ${{ secrets.DOCKER_PASSWORD_MEDICAL_DATA }}
             - name: checkout
               uses: actions/checkout@v2
             - name: Build and push
@@ -22,4 +22,4 @@ jobs:
                 context: ./backend/medical_data_service
                 file: ./backend/medical_data_service/Dockerfile
                 push: true
-                tags: ${{ secrets.DOCKER_TAG_MEDICAL_DATA_SERVICE }}
+                tags: ${{ secrets.DOCKER_TAG_MEDICAL_DATA }}
