@@ -3,12 +3,12 @@ package org.example.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "user")
+@Table(name = "user_account")
 public class User {
 
     @Id
     @Column(name = "user_id", nullable = false, length = 255)
-    private String userId;  // Changed from Long to String (since it's VARCHAR in DB)
+    private String userId; // Changed from Long to String (since it's VARCHAR in DB)
 
     @Column(name = "first_name", length = 255)
     private String firstName;
@@ -20,9 +20,10 @@ public class User {
     private String username; // Matches DB
 
     @Column(name = "role", length = 255)
-    private String role;  // Matches DB
+    private String role; // Matches DB
 
-    public User() {}
+    public User() {
+    }
 
     public User(String userId, String firstName, String lastName, String username, String role) {
         this.userId = userId;
