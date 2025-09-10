@@ -1,0 +1,29 @@
+import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.security.identity.SecurityIdentityAugmentor;
+import io.quarkus.security.identity.SecurityIdentityAugmentorBuildItem;
+import io.quarkus.security.identity.SecurityIdentityAugmentorBuildItem.Producer;
+import io.smallrye.mutiny.Uni;
+import javax.enterprise.context.ApplicationScoped;
+import javax.json.JsonObject;
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
+@ApplicationScoped
+public class RoleMapper implements SecurityIdentityAugmentor {
+
+    @Override
+    public Uni<SecurityIdentity> augment(SecurityIdentity identity, SecurityIdentityAugmentorContext context) {
+        JsonWebToken jwt = context.getPrincipal().getOptional(JsonWebToken.class).orElse(null);
+
+        if (jwt != null) {
+            String role = jwt.getClaim("role"); // your string claim
+            if (role != null) {
+                // Add role to the SecurityIdentity
+                SecurityIdentity.Builder builder = SecurityIdentity.builder(identity);
+                builder.addRole(role);
+                return Uni.createFrom().item(builder.build());
+            }
+        }
+
+        return Uni.createFrom().item(identity);
+    }
+}
