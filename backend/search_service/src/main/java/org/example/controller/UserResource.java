@@ -30,7 +30,7 @@ public class UserResource {
     @GET
     @Path("/test")
     // @PermitAll disabled for testing.
-    @RolesAllowed({ "Doctor", "other_staff" })
+    @RolesAllowed({ "Patient", "Doctor", "Other_Staff" })
     public String testSearchService(@Context HttpHeaders headers) {
         System.out.println("Search service is up and running!");
         return "Search service is up and running!";
