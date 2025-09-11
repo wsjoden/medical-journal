@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Keycloak from 'keycloak-js';
 
 const AuthContext = createContext();
@@ -10,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const [keycloak, setKeycloak] = useState(null);
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState(null);
+    const navigate = useNavigate();
 
     const handleSuccessfulLogin = useCallback((kc) => {
         const decodedToken = kc.tokenParsed;
@@ -23,7 +25,6 @@ export const AuthProvider = ({ children }) => {
         });
 
         const role = decodedToken?.role;
-
         setUserRoles(role);
 
         // Determine primary role for your medical system
@@ -42,17 +43,53 @@ export const AuthProvider = ({ children }) => {
         setRole(primaryRole);
         setIsLoggedIn(true);
 
-        // Set comprehensive user info
-        setUserInfo({
+        // Set user info
+        const userInfoFromToken = {
             userId: decodedToken?.sub,
             username: decodedToken?.preferred_username,
             email: decodedToken?.email,
             firstName: decodedToken?.given_name,
             lastName: decodedToken?.family_name,
             role: primaryRole
-        });
-
+        };
+        setUserInfo(userInfoFromToken);
         localStorage.setItem('token', kc.token);
+
+        // Fetch & sync user from backend
+        fetchUserProfile(kc.token);
+
+        const currentPath = window.location.pathname;
+        if (currentPath === '/' || currentPath === '/login') {
+            navigate('/profile');
+        }
+
+    }, [fetchUserProfile, navigate]);
+
+    const fetchUserProfile = useCallback(async (token) => {
+        try {
+            const res = await fetch(`${process.env.REACT_APP_USER_SERVICE_URL}/user/profile`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const profile = await res.json();
+                console.log("User profile fetched:", profile);
+
+                setUserInfo(prevInfo => ({
+                    ...prevInfo,
+                    ...profile
+                }));
+                return profile;
+            } else {
+                console.error("Failed to fetch user profile", res.status);
+            }
+        } catch (e) {
+            console.error("error fetching user profile", e);
+        }
     }, []);
 
     useEffect(() => {
@@ -149,6 +186,9 @@ export const AuthProvider = ({ children }) => {
         // Token management
         getToken,
         refreshToken,
+
+        // Additional methods
+        refreshUserProfile: () => fetchUserProfile(getToken()),
 
         // Keycloak instance (for advanced usage)
         keycloak

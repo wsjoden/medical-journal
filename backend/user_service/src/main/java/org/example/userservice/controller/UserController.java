@@ -58,22 +58,22 @@ public class UserController {
         return "User service is up and running!";
     }
 
-    @PostMapping("/webhook")
-    public ResponseEntity<Void> webhook(@RequestBody String payload) {
-        System.out.println("Webhook called with payload: " + payload);
+    // @PostMapping("/webhook")
+    // public ResponseEntity<Void> webhook(@RequestBody String payload) {
+    // System.out.println("Webhook called with payload: " + payload);
 
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            User user = mapper.readValue(payload, User.class);
-            System.out.println("User: " + user.toString());
+    // ObjectMapper mapper = new ObjectMapper();
+    // try {
+    // User user = mapper.readValue(payload, User.class);
+    // System.out.println("User: " + user.toString());
 
-            userService.saveUser(user);
+    // userService.saveUser(user);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // return new ResponseEntity<>(HttpStatus.OK);
+    // }
 
     // @PostMapping("/register")
     // public ResponseEntity<LoginResponseDTO> registerUser(@RequestBody
@@ -124,15 +124,50 @@ public class UserController {
         if (userId == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+
         User user = userService.findByUserId(userId);
+
+        // Create user from Jwt
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            System.out.println("User not found in db, creating from jwt...");
+            user = createUserFromJWT(authentication);
+            if (user != null) {
+                userService.saveUser(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
         }
         UserProfileDTO profile = new UserProfileDTO(userId, user.getUsername(), user.getRole(), user.getFirstName(),
                 user.getLastName());
 
         System.out.println(profile.toString());
         return new ResponseEntity<>(profile, HttpStatus.OK);
+    }
+
+    private User createUserFromJWT(Authentication authentication) {
+        try {
+            if (authentication.getCredentials() instanceof Jwt) {
+                Jwt jwt = (Jwt) authentication.getCredentials();
+
+                String userId = jwt.getSubject();
+                String username = jwt.getClaimAsString("preferred_username");
+                String firstname = jwt.getClaimAsString("given_name");
+                String lastname = jwt.getClaimAsString("family_name");
+                String role = jwt.getClaimAsString("role");
+
+                User user = new User();
+                user.setUserId(userId);
+                user.setUsername(username);
+                user.setFirstName(firstname);
+                user.setLastName(lastname);
+                user.setRole(role);
+
+                return user;
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating user from jwt:" + e.getMessage());
+        }
+        return null;
     }
 
     // Get all users
