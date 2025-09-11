@@ -8,6 +8,7 @@ import org.example.medicaldataservice.model.Diagnose;
 import org.example.medicaldataservice.model.Encounter;
 import org.example.medicaldataservice.service.EncounterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,9 @@ public class EncounterController {
     private final WebClient.Builder webClientBuilder;
     private final EncounterService encounterService;
 
+    @Value("${USER_SERVICE_URL}")
+    private String userServiceURL;
+
     public EncounterController(EncounterService encounterService, WebClient.Builder webClientBuilder) {
         this.encounterService = encounterService;
         this.webClientBuilder = webClientBuilder;
@@ -33,22 +37,22 @@ public class EncounterController {
     // Create encounter
     @PostMapping("/new/patient/{id}")
     public ResponseEntity<Encounter> registerEncounter(Authentication authentication,
-                                                       @RequestBody Encounter encounter,
-                                                       @PathVariable String id) {
+            @RequestBody Encounter encounter,
+            @PathVariable String id) {
         String staffUserId = authentication.getName();
-        if(staffUserId == null) {
+        if (staffUserId == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         encounter.setPatientUserId(id);
         System.out.println("staffId: " + staffUserId);
 
         encounter.setStaffUserId(staffUserId);
-        System.out.println("encounter: " + encounter.toString() );
+        System.out.println("encounter: " + encounter.toString());
         encounterService.registerEncounter(encounter);
         return ResponseEntity.ok(encounter);
     }
 
-    @GetMapping ("/patient/{id}")
+    @GetMapping("/patient/{id}")
     public ResponseEntity<List<EncounterDTO>> findEncounterByPatientId(@PathVariable String id) {
         List<Encounter> encounters = encounterService.findEncountersByPatientUserId(id);
         if (encounters == null || encounters.isEmpty()) {
@@ -66,27 +70,12 @@ public class EncounterController {
         }
     }
 
-    private JwtDTO ExtractJwtToken(String token) {
-        String jwtServiceURL = "http://jwt-service:8081/jwt/extract";
+    private StaffDTO getStaff(Long userId) {
+        // String staffServiceURL = "http://user-service:8082/staff/" + userId;
+        String url = userServiceURL + "/staff/" + userId;
         return this.webClientBuilder.build()
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("jwt-service")
-                        .port(8081)
-                        .path("/jwt/extract")
-                        .queryParam("token", token)
-                        .build())
-                .retrieve()
-                .bodyToMono(JwtDTO.class)
-                .block();
-    }
-
-    private StaffDTO getStaff(Long userId){
-        String staffServiceURL = "http://user-service:8082/staff/" + userId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(staffServiceURL)
+                .uri(url)
                 .retrieve()
                 .bodyToMono(StaffDTO.class)
                 .block();

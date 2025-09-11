@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ public class MessageController {
 
     private final MessageService messageService;
     private final WebClient.Builder webClientBuilder;
+
+    @Value("${USER_SERVICE_URL}")
+    private String userServiceURL;
 
     public MessageController(MessageService messageService, WebClient.Builder webClientBuilder) {
         this.messageService = messageService;
@@ -211,11 +215,12 @@ public class MessageController {
             return null;
         }
 
-        String userServiceURL = "http://user-service:8082/user/" + userId;
+        // String userServiceURL = "http://user-service:8082/user/" + userId;
+        String url = userServiceURL + "/user/" + userId;
 
         UserDTO user = this.webClientBuilder.build()
                 .get()
-                .uri(userServiceURL)
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(UserDTO.class)
@@ -232,10 +237,11 @@ public class MessageController {
             return null;
         }
 
-        String userServiceURL = "http://user-service:8082/user/username/" + username;
+        // String userServiceURL = "http://user-service:8082/user/username/" + username;
+        String url = userServiceURL + "/user/username/" + username;
         String userId = this.webClientBuilder.build()
                 .get()
-                .uri(userServiceURL)
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(String.class)

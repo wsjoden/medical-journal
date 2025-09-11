@@ -7,6 +7,7 @@ import org.example.medicaldataservice.dto.StaffDTO;
 import org.example.medicaldataservice.model.Observation;
 import org.example.medicaldataservice.service.ObservationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,6 +24,9 @@ public class ObservationController {
     private final ObservationService observationService;
     private final WebClient.Builder webClientBuilder;
 
+    @Value("${USER_SERVICE_URL}")
+    private String userServiceURL;
+
     public ObservationController(ObservationService observationService, WebClient.Builder webClientBuilder) {
         this.observationService = observationService;
         this.webClientBuilder = webClientBuilder;
@@ -30,9 +34,8 @@ public class ObservationController {
 
     @PostMapping("/new/patient/{id}")
     public ResponseEntity<Response> registerObservation(Authentication authentication,
-                                                        @RequestBody Observation observation,
-                                                        @PathVariable String id
-    ) {
+            @RequestBody Observation observation,
+            @PathVariable String id) {
         String staffUserId = authentication.getName();
         if (staffUserId == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -62,27 +65,12 @@ public class ObservationController {
         }
     }
 
-    private JwtDTO ExtractJwtToken(String token) {
-        String jwtServiceURL = "http://jwt-service:8081/jwt/extract";
+    private StaffDTO getStaff(Long userId) {
+        // String staffServiceURL = "http://user-service:8082/staff/" + userId;
+        String url = userServiceURL + "/staff/" + userId;
         return this.webClientBuilder.build()
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("jwt-service")
-                        .port(8081)
-                        .path("/jwt/extract")
-                        .queryParam("token", token)
-                        .build())
-                .retrieve()
-                .bodyToMono(JwtDTO.class)
-                .block();
-    }
-
-    private StaffDTO getStaff(Long userId){
-        String staffServiceURL = "http://user-service:8082/staff/" + userId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(staffServiceURL)
+                .uri(url)
                 .retrieve()
                 .bodyToMono(StaffDTO.class)
                 .block();

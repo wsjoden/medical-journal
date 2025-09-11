@@ -34,6 +34,9 @@ public class UserController {
     private final WebClient.Builder webClientBuilder;
     private final UserService userService;
 
+    @Value("${MEDICAL_DATA_SERVICE_URL}")
+    private String medicalDataServiceUrl;
+
     @Autowired
     public UserController(WebClient.Builder webClientBuilder, UserService userService) {
         this.userService = userService;
@@ -285,10 +288,12 @@ public class UserController {
     // }
 
     public List<DiagnoseDTO> getDiagnosesByUserId(String patientUserId, String token) {
-        String medicalDataServiceURL = "http://medical-data-service:8084/diagnoses/patient/" + patientUserId;
+        // String medicalDataServiceURL =
+        // "http://medical-data-service:8084/diagnoses/patient/" + patientUserId;
+        String url = medicalDataServiceUrl + "/diagnoses/patient/" + patientUserId;
         return this.webClientBuilder.build()
                 .get()
-                .uri(medicalDataServiceURL)
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .onStatus(status -> status == HttpStatus.NOT_FOUND, clientResponse -> Mono.empty())
@@ -298,10 +303,12 @@ public class UserController {
     }
 
     public List<EncounterDTO> getEncountersByUserId(String patientUserId, String token) {
-        String medicalDataServiceURL = "http://medical-data-service:8084/encounters/patient/" + patientUserId;
+        // String medicalDataServiceURL =
+        // "http://medical-data-service:8084/encounters/patient/" + patientUserId;
+        String url = medicalDataServiceUrl + "/encounters/patient/" + patientUserId;
         return this.webClientBuilder.build()
                 .get()
-                .uri(medicalDataServiceURL)
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .onStatus(status -> status == HttpStatus.NOT_FOUND, clientResponse -> Mono.empty())
@@ -311,10 +318,12 @@ public class UserController {
     }
 
     public List<ObservationDTO> getObservationsByUserId(String patientUserId, String token) {
-        String medicalDataServiceURL = "http://medical-data-service:8084/observations/patient/" + patientUserId;
+        // String medicalDataServiceURL =
+        // "http://medical-data-service:8084/observations/patient/" + patientUserId;
+        String url = medicalDataServiceUrl + "/observations/patient/" + patientUserId;
         return this.webClientBuilder.build()
                 .get()
-                .uri(medicalDataServiceURL)
+                .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .onStatus(status -> status == HttpStatus.NOT_FOUND, clientResponse -> Mono.empty())
