@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '/login') {
-            navigate('/profile');
+            navigate('/profile', { replace: true });
         }
 
     }, [fetchUserProfile, navigate]);
