@@ -13,6 +13,33 @@ export const AuthProvider = ({ children }) => {
     const [userInfo, setUserInfo] = useState(null);
     const navigate = useNavigate();
 
+    const fetchUserProfile = useCallback(async (token) => {
+        try {
+            const res = await fetch(`${process.env.REACT_APP_USER_SERVICE_URL}/user/profile`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                const profile = await res.json();
+                console.log("User profile fetched:", profile);
+
+                setUserInfo(prevInfo => ({
+                    ...prevInfo,
+                    ...profile
+                }));
+                return profile;
+            } else {
+                console.error("Failed to fetch user profile", res.status);
+            }
+        } catch (e) {
+            console.error("error fetching user profile", e);
+        }
+    }, []);
+
     const handleSuccessfulLogin = useCallback((kc) => {
         const decodedToken = kc.tokenParsed;
         console.log('Decoded token:', decodedToken);
@@ -64,33 +91,6 @@ export const AuthProvider = ({ children }) => {
         }
 
     }, [fetchUserProfile, navigate]);
-
-    const fetchUserProfile = useCallback(async (token) => {
-        try {
-            const res = await fetch(`${process.env.REACT_APP_USER_SERVICE_URL}/user/profile`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (res.ok) {
-                const profile = await res.json();
-                console.log("User profile fetched:", profile);
-
-                setUserInfo(prevInfo => ({
-                    ...prevInfo,
-                    ...profile
-                }));
-                return profile;
-            } else {
-                console.error("Failed to fetch user profile", res.status);
-            }
-        } catch (e) {
-            console.error("error fetching user profile", e);
-        }
-    }, []);
 
     useEffect(() => {
         console.log("Environment variables check:");
