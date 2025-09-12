@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Keycloak from 'keycloak-js';
 
@@ -12,6 +12,9 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState(null);
     const navigate = useNavigate();
+
+    const isInitialized = useRef(false);
+    const hasProcessedLogin = useRef(false);
 
     const fetchUserProfile = useCallback(async (token) => {
         try {
@@ -41,6 +44,13 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const handleSuccessfulLogin = useCallback((kc) => {
+
+        if (hasProcessedLogin.current) {
+            console.log("Login already processed, skipping");
+            return;
+        }
+
+        hasProcessedLogin.current = true;
 
         console.log("=== LOGIN DEBUG ===");
         console.log("Current URL:", window.location.href);
@@ -92,21 +102,26 @@ export const AuthProvider = ({ children }) => {
         // Fetch & sync user from backend
         fetchUserProfile(kc.token);
 
+        // Single redirect method - only if we're on login or home page
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '/login') {
-            console.log("Navigating to /profile via navigate()");
-            navigate('/profile', { replace: true });
+            console.log("Redirecting to profile");
+            // Use setTimeout to avoid immediate re-render conflicts
+            setTimeout(() => {
+                navigate('/profile', { replace: true });
+            }, 100);
         }
-
-        if (window.location.search.includes("code=") || window.location.hash.includes("code=")) {
-            console.log("Cleaning URL via replaceState()");
-            window.history.replaceState({}, document.title, "/profile");
-        }
-        console.log("=== END LOGIN DEBUG ===");
 
     }, [fetchUserProfile, navigate]);
 
     useEffect(() => {
+
+        if (isInitialized.current) {
+            console.log("Keycloak already initialized, skipping");
+            return;
+        }
+
+        isInitialized.current = true;
         console.log("Environment variables check:");
         console.log("Keycloak URL:", process.env.REACT_APP_KEYCLOAK_URL);
         console.log("Keycloak Realm:", process.env.REACT_APP_KEYCLOAK_REALM);
@@ -148,11 +163,12 @@ export const AuthProvider = ({ children }) => {
                 console.error('Keycloak initialization failed:', err);
                 setLoading(false);
             });
-    }, [handleSuccessfulLogin]);
+    }, []);
 
     const login = () => {
         if (keycloak) {
             console.log("Initiating login...");
+            hasProcessedLogin.current = false;
             keycloak.login();
         } else {
             console.error("Keycloak instance is null");
