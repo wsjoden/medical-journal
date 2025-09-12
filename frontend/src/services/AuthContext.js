@@ -90,6 +90,10 @@ export const AuthProvider = ({ children }) => {
             navigate('/profile', { replace: true });
         }
 
+        if (window.location.search.includes("code=") || window.location.hash.includes("code=")) {
+            window.history.replaceState({}, document.title, "/profile");
+        }
+
     }, [fetchUserProfile, navigate]);
 
     useEffect(() => {
