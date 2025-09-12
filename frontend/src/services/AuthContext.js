@@ -41,6 +41,13 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const handleSuccessfulLogin = useCallback((kc) => {
+
+        console.log("=== LOGIN DEBUG ===");
+        console.log("Current URL:", window.location.href);
+        console.log("Current path:", window.location.pathname);
+        console.log("Has code param:", window.location.search.includes("code="));
+        console.log("Has hash code:", window.location.hash.includes("code="));
+
         const decodedToken = kc.tokenParsed;
         console.log('Decoded token:', decodedToken);
         console.log('Full token info:', {
@@ -87,12 +94,15 @@ export const AuthProvider = ({ children }) => {
 
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '/login') {
+            console.log("Navigating to /profile via navigate()");
             navigate('/profile', { replace: true });
         }
 
         if (window.location.search.includes("code=") || window.location.hash.includes("code=")) {
+            console.log("Cleaning URL via replaceState()");
             window.history.replaceState({}, document.title, "/profile");
         }
+        console.log("=== END LOGIN DEBUG ===");
 
     }, [fetchUserProfile, navigate]);
 
