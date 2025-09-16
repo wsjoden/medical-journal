@@ -27,7 +27,7 @@ public class MessageController {
     private final MessageService messageService;
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${USER_SERVICE_URL}")
+    @Value("${user.service.url}")
     private String userServiceURL;
 
     public MessageController(MessageService messageService, WebClient.Builder webClientBuilder) {

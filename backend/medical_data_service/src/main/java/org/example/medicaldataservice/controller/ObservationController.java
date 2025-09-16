@@ -24,7 +24,7 @@ public class ObservationController {
     private final ObservationService observationService;
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${USER_SERVICE_URL}")
+    @Value("${user.service.url}")
     private String userServiceURL;
 
     public ObservationController(ObservationService observationService, WebClient.Builder webClientBuilder) {

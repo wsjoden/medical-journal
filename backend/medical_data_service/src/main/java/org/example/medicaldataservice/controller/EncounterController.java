@@ -26,7 +26,7 @@ public class EncounterController {
     private final WebClient.Builder webClientBuilder;
     private final EncounterService encounterService;
 
-    @Value("${USER_SERVICE_URL}")
+    @Value("${user.service.url}")
     private String userServiceURL;
 
     public EncounterController(EncounterService encounterService, WebClient.Builder webClientBuilder) {

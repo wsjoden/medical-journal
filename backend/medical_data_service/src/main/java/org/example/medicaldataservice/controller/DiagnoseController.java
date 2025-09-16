@@ -25,7 +25,7 @@ public class DiagnoseController {
     private final WebClient.Builder webClientBuilder;
     private final DiagnoseService diagnoseService;
 
-    @Value("${USER_SERVICE_URL}")
+    @Value("${user.service.url}")
     private String userServiceURL;
 
     public DiagnoseController(WebClient.Builder webClientBuilder, DiagnoseService diagnoseService) {
