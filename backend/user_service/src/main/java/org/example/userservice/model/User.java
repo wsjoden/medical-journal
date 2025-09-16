@@ -1,12 +1,14 @@
 package org.example.userservice.model;
+
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "user_account")
 public class User {
 
     @Id
     private String userId;
-    
+
     private String username;
     private String firstName;
     private String lastName;
