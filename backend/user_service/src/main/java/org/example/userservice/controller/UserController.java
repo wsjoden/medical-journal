@@ -34,7 +34,7 @@ public class UserController {
     private final WebClient.Builder webClientBuilder;
     private final UserService userService;
 
-    @Value("${MEDICAL_DATA_SERVICE_URL}")
+    @Value("${medical.data.service.url}")
     private String medicalDataServiceUrl;
 
     @Autowired
