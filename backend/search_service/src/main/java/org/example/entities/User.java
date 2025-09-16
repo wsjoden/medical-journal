@@ -8,7 +8,7 @@ public class User {
 
     @Id
     @Column(name = "user_id", nullable = false, length = 255)
-    private String userId; // Changed from Long to String (since it's VARCHAR in DB)
+    private String userId;
 
     @Column(name = "first_name", length = 255)
     private String firstName;
@@ -17,10 +17,10 @@ public class User {
     private String lastName;
 
     @Column(name = "username", length = 255)
-    private String username; // Matches DB
+    private String username;
 
     @Column(name = "role", length = 255)
-    private String role; // Matches DB
+    private String role;
 
     public User() {
     }
