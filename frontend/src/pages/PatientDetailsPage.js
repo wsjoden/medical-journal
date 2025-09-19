@@ -12,6 +12,16 @@ function PatientDetailsPage() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    // DEBUG LOGS - Add these
+    console.log('=== PatientDetailsPage Auth Debug ===');
+    console.log('user object:', user);
+    console.log('user?.role:', user?.role);
+    console.log('typeof user?.role:', typeof user?.role);
+    console.log('user?.role === "doctor":', user?.role === 'doctor');
+    console.log('user?.role === "Doctor":', user?.role === 'Doctor');
+    console.log('user?.role === "other_staff":', user?.role === 'other_staff');
+    console.log('user?.role === "Other_Staff":', user?.role === 'Other_Staff');
+
     useEffect(() => {
         apiRequest('GET', `/user/details/${id}`, {})
             .then(response => {
@@ -50,6 +60,13 @@ function PatientDetailsPage() {
         navigate(`/diagnose/new/patient/${id}`);
     };
 
+    // Helper function to check if user can add medical records
+    const canAddMedicalRecords = () => {
+        const result = user?.role === 'doctor' || user?.role === 'Doctor' || user?.role === 'other_staff' || user?.role === 'Other_Staff';
+        console.log('canAddMedicalRecords result:', result);
+        return result;
+    };
+
     return (
         <div className="patient-details-page">
             <h1>Patient Details</h1>
@@ -81,11 +98,18 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No observations found.</p>
                 )}
-                {(user?.role === 'doctor' || user?.role === 'other_staff') &&
+
+                {/* TEST BUTTON - Always show for debugging */}
+                <button onClick={handleNewObservationClick} className="btn btn-secondary mt-2">
+                    Add New Observation (TEST - ALWAYS SHOW)
+                </button>
+
+                {/* Conditional button */}
+                {canAddMedicalRecords() && (
                     <button onClick={handleNewObservationClick} className="btn btn-primary mt-3">
-                        Add New Observation
+                        Add New Observation (CONDITIONAL)
                     </button>
-                }
+                )}
             </div>
 
             <div className="patient-encounters">
@@ -100,11 +124,11 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No encounters found.</p>
                 )}
-                {(user?.role === 'Doctor' || user?.role === 'other_staff') &&
+                {canAddMedicalRecords() && (
                     <button onClick={handleNewEncounterClick} className="btn btn-primary mt-3">
                         Add New Encounter
                     </button>
-                }
+                )}
             </div>
 
             <div className="diagnose-history">
@@ -119,11 +143,11 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No diagnose history found.</p>
                 )}
-                {(user?.role === 'doctor' || user?.role === 'other_staff') &&
+                {canAddMedicalRecords() && (
                     <button onClick={handleNewDiagnoseClick} className="btn btn-primary mt-3">
                         Add New Diagnose
                     </button>
-                }
+                )}
             </div>
         </div>
     );
