@@ -31,6 +31,7 @@ function PatientNav({ onLogout, userInfo }) {
             <Link to="/profile" className="nav-link">My Profile</Link>
             <Link to="/inbox" className="nav-link">Inbox</Link>
             <Link to="/image/list" className="nav-link">Images</Link>
+            <Link to={`/patient/${userInfo.id}`} className="nav-link">My Records</Link>
             <span onClick={onLogout} className="nav-link logout-nav-link" style={{ cursor: 'pointer' }}>
                 Logout
             </span>
@@ -107,7 +108,7 @@ function NavBar() {
                             <Link to="/patient" className="nav-link">Patients</Link>
                         )}
                         {isLoggedIn && role === 'patient' && (
-                            <Link to="/my-records" className="nav-link">My Records</Link>
+                            <Link to={`/patient/${userInfo.id}`} className="nav-link">My Records</Link>
                         )}
                     </Nav>
                     {isLoggedIn ? (
