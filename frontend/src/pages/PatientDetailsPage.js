@@ -6,6 +6,7 @@ import { useAuth } from '../services/AuthContext';
 
 function PatientDetailsPage() {
     const { id } = useParams();
+    const { user } = useAuth();
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
