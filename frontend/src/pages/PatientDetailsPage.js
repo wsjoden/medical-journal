@@ -100,7 +100,7 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No encounters found.</p>
                 )}
-                {(user?.role === 'doctor' || user?.role === 'other_staff') &&
+                {(user?.role === 'Doctor' || user?.role === 'other_staff') &&
                     <button onClick={handleNewEncounterClick} className="btn btn-primary mt-3">
                         Add New Encounter
                     </button>
