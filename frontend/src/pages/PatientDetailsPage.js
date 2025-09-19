@@ -12,17 +12,6 @@ function PatientDetailsPage() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // DEBUG LOGS - Add these
-    console.log('=== PatientDetailsPage Auth Debug ===');
-    console.log('authLoading:', authLoading);
-    console.log('userInfo object:', userInfo);
-    console.log('role from useAuth:', role);
-    console.log('userInfo?.role:', userInfo?.role);
-    console.log('role === "doctor":', role === 'doctor');
-    console.log('role === "Doctor":', role === 'Doctor');
-    console.log('role === "other_staff":', role === 'other_staff');
-    console.log('role === "Other_Staff":', role === 'Other_Staff');
-
     useEffect(() => {
         apiRequest('GET', `/user/details/${id}`, {})
             .then(response => {
@@ -100,15 +89,9 @@ function PatientDetailsPage() {
                     <p>No observations found.</p>
                 )}
 
-                {/* TEST BUTTON - Always show for debugging */}
-                <button onClick={handleNewObservationClick} className="btn btn-secondary mt-2">
-                    Add New Observation (TEST - ALWAYS SHOW)
-                </button>
-
-                {/* Conditional button */}
                 {canAddMedicalRecords() && (
                     <button onClick={handleNewObservationClick} className="btn btn-primary mt-3">
-                        Add New Observation (CONDITIONAL)
+                        Add New Observation
                     </button>
                 )}
             </div>
