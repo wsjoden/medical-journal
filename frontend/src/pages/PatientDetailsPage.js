@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/PatientDetailsPage.css';
 import { apiRequest } from '../services/RESTService';
+import { useAuth } from '../services/AuthContext';
 
 function PatientDetailsPage() {
     const { id } = useParams();
@@ -37,15 +38,15 @@ function PatientDetailsPage() {
     }
 
     const handleNewObservationClick = () => {
-        navigate(`/observation/new/patient/${patient.id}`);
+        navigate(`/observation/new/patient/${id}`);
     };
 
     const handleNewEncounterClick = () => {
-        navigate(`/encounter/new/patient/${patient.id}`);
+        navigate(`/encounter/new/patient/${id}`);
     };
 
     const handleNewDiagnoseClick = () => {
-        navigate(`/diagnose/new/patient/${patient.id}`);
+        navigate(`/diagnose/new/patient/${id}`);
     };
 
     return (
@@ -79,9 +80,11 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No observations found.</p>
                 )}
-                <button onClick={handleNewObservationClick} className="btn btn-primary mt-3">
-                    Add New Observation
-                </button>
+                {(user?.role === 'doctor' || user?.role === 'other_staff') &&
+                    <button onClick={handleNewObservationClick} className="btn btn-primary mt-3">
+                        Add New Observation
+                    </button>
+                }
             </div>
 
             <div className="patient-encounters">
@@ -96,9 +99,11 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No encounters found.</p>
                 )}
-                <button onClick={handleNewEncounterClick} className="btn btn-primary mt-3">
-                    Add New Encounter
-                </button>
+                {(user?.role === 'doctor' || user?.role === 'other_staff') &&
+                    <button onClick={handleNewEncounterClick} className="btn btn-primary mt-3">
+                        Add New Encounter
+                    </button>
+                }
             </div>
 
             <div className="diagnose-history">
@@ -113,9 +118,11 @@ function PatientDetailsPage() {
                 ) : (
                     <p>No diagnose history found.</p>
                 )}
-                <button onClick={handleNewDiagnoseClick} className="btn btn-primary mt-3">
-                    Add New Diagnose
-                </button>
+                {(user?.role === 'doctor' || user?.role === 'other_staff') &&
+                    <button onClick={handleNewDiagnoseClick} className="btn btn-primary mt-3">
+                        Add New Diagnose
+                    </button>
+                }
             </div>
         </div>
     );
