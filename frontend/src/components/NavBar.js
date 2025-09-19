@@ -108,7 +108,7 @@ function NavBar() {
                             <Link to="/patient" className="nav-link">Patients</Link>
                         )}
                         {isLoggedIn && role === 'patient' && (
-                            <Link to={`/patient/${userInfo.id}`} className="nav-link">My Records</Link>
+                            <Link to={`/patient/${userInfo.userId}`} className="nav-link">My Records</Link>
                         )}
                     </Nav>
                     {isLoggedIn ? (
