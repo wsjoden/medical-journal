@@ -17,7 +17,7 @@ function DashboardPage() {
         return <div>Loading...</div>;
     }
 
-    if (role !== 'Doctor' && role !== 'Other_Staff') {
+    if (role !== 'doctor' && role !== 'other_staff') {
         return <div>Access Denied</div>;
     }
 
