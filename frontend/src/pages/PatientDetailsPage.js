@@ -6,7 +6,7 @@ import { useAuth } from '../services/AuthContext';
 
 function PatientDetailsPage() {
     const { id } = useParams();
-    const { user } = useAuth();
+    const { userInfo, role, loading: authLoading } = useAuth(); // Use correct property names
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,13 +14,14 @@ function PatientDetailsPage() {
 
     // DEBUG LOGS - Add these
     console.log('=== PatientDetailsPage Auth Debug ===');
-    console.log('user object:', user);
-    console.log('user?.role:', user?.role);
-    console.log('typeof user?.role:', typeof user?.role);
-    console.log('user?.role === "doctor":', user?.role === 'doctor');
-    console.log('user?.role === "Doctor":', user?.role === 'Doctor');
-    console.log('user?.role === "other_staff":', user?.role === 'other_staff');
-    console.log('user?.role === "Other_Staff":', user?.role === 'Other_Staff');
+    console.log('authLoading:', authLoading);
+    console.log('userInfo object:', userInfo);
+    console.log('role from useAuth:', role);
+    console.log('userInfo?.role:', userInfo?.role);
+    console.log('role === "doctor":', role === 'doctor');
+    console.log('role === "Doctor":', role === 'Doctor');
+    console.log('role === "other_staff":', role === 'other_staff');
+    console.log('role === "Other_Staff":', role === 'Other_Staff');
 
     useEffect(() => {
         apiRequest('GET', `/user/details/${id}`, {})
@@ -62,7 +63,7 @@ function PatientDetailsPage() {
 
     // Helper function to check if user can add medical records
     const canAddMedicalRecords = () => {
-        const result = user?.role === 'doctor' || user?.role === 'Doctor' || user?.role === 'other_staff' || user?.role === 'Other_Staff';
+        const result = role === 'doctor' || role === 'Doctor' || role === 'other_staff' || role === 'Other_Staff';
         console.log('canAddMedicalRecords result:', result);
         return result;
     };
