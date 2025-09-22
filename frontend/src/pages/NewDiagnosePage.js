@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/NewDiagnosePage.css';
 import { apiRequest } from '../services/RESTService';
+import { useAuth } from '../services/AuthContext';
 
 function NewDiagnosePage() {
     const { id } = useParams();
+    const { role } = useAuth();
     const [diagnose, setDiagnose] = useState('');
     const [details, setDetails] = useState('');
     const navigate = useNavigate();

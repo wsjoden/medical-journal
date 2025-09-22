@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/NewObservationPage.css';
 import { apiRequest } from '../services/RESTService';
+import { useAuth } from '../services/AuthContext';
 
 function NewObservationPage() {
     const { id } = useParams();
+    const { role } = useAuth();
     const [date, setDate] = useState('');
     const [observation, setDetails] = useState('');
     const navigate = useNavigate();
