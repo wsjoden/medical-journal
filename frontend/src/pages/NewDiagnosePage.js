@@ -15,7 +15,11 @@ function NewDiagnosePage() {
         apiRequest('POST', `/diagnoses/new/patient/${id}`, diagnosisData)
             .then(response => {
                 console.log('Diagnosis created:', response.data);
-                navigate(`/patient/${id}`);
+                if (role === 'doctor') {
+                    navigate(`/patient/${id}`);
+                } else {
+                    navigate(`/patient`);
+                }
             })
             .catch(error => {
                 console.error('Error creating diagnosis:', error);

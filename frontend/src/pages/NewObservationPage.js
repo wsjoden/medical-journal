@@ -16,7 +16,11 @@ function NewObservationPage() {
         apiRequest('POST', `/observations/new/patient/${id}`, observationData)
             .then(response => {
                 console.log('Observation created:', response.data);
-                navigate(`/patient/${id}`);
+                if (role === 'doctor') {
+                    navigate(`/patient/${id}`);
+                } else {
+                    navigate(`/patient`);
+                };
             })
             .catch(error => {
                 console.error('Error creating observation:', error);

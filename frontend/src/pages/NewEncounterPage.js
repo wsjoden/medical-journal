@@ -17,7 +17,11 @@ function NewEncounterPage() {
         apiRequest('POST', `/encounters/new/patient/${id}`, encounterData)
             .then(response => {
                 console.log('Encounter created:', response.data);
-                navigate(`/patient/${id}`);
+                if (role === 'doctor') {
+                    navigate(`/patient/${id}`);
+                } else {
+                    navigate(`/patient`);
+                }
             })
             .catch(error => {
                 console.error('Error creating encounter:', error);
