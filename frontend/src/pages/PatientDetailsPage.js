@@ -63,8 +63,6 @@ function PatientDetailsPage() {
             <h1>Patient Details</h1>
             <div className="patient-info">
                 <h2>{`${patient.firstName} ${patient.lastName}`}</h2>
-                <p><strong>SSN:</strong> {patient.ssn}</p>
-                <p><strong>Email:</strong> {patient.email}</p>
                 <div className="current-diagnose">
                     <h3>Current Diagnose</h3>
                     {patient.currentDiagnose ? (
