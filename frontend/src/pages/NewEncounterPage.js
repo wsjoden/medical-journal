@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/NewEncounterPage.css';
 import { apiRequest } from '../services/RESTService';
+import { useAuth } from '../services/AuthContext';
 
 function NewEncounterPage() {
     const { id } = useParams();
+    const { role } = useAuth();
     const [date, setDate] = useState('');
     const [reason, setReason] = useState('');
     const [notes, setNotes] = useState('');
@@ -13,7 +15,8 @@ function NewEncounterPage() {
     const handleSubmit = (e) => {
         e.preventDefault();
         const encounterData = { encounterDate: date, reason, notes, patientId: id };
-        console.log('Encounter Data:', encounterData); // Log the data to check the format
+        console.log('Encounter Data:', encounterData);
+        console.log('User Role:', role);
         apiRequest('POST', `/encounters/new/patient/${id}`, encounterData)
             .then(response => {
                 console.log('Encounter created:', response.data);
