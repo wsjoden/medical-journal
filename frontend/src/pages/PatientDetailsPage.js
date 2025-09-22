@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/PatientDetailsPage.css';
 import { apiRequest } from '../services/RESTService';
 import { useAuth } from '../services/AuthContext';
+import { format } from 'date-fns';
 
 function PatientDetailsPage() {
     const { id } = useParams();
@@ -81,7 +82,10 @@ function PatientDetailsPage() {
                 {patient.observationList && patient.observationList.length > 0 ? (
                     patient.observationList.map((observation, index) => (
                         <div key={index} className="observation">
-                            <p><strong>Date:</strong> {observation.observationDate}</p>
+                            <p>
+                                <strong>Date:</strong>{" "}
+                                {format(new Date(observation.observationDate), "MMM dd, yyyy")}
+                            </p>
                             <p><strong>Details:</strong> {observation.observation}</p>
                         </div>
                     ))
@@ -101,7 +105,10 @@ function PatientDetailsPage() {
                 {patient.encounterList && patient.encounterList.length > 0 ? (
                     patient.encounterList.map((encounter, index) => (
                         <div key={index} className="encounter">
-                            <p><strong>Date:</strong> {encounter.encounterDate}</p>
+                            <p>
+                                <strong>Date:</strong>{" "}
+                                {format(new Date(encounter.encounterDate), "MMM dd, yyyy")}
+                            </p>
                             <p><strong>Details:</strong> {encounter.notes}</p>
                         </div>
                     ))
@@ -120,7 +127,10 @@ function PatientDetailsPage() {
                 {patient.diagnoseList && patient.diagnoseList.length > 0 ? (
                     patient.diagnoseList.map((diagnose, index) => (
                         <div key={index} className="diagnose">
-                            <p><strong>Date:</strong> {diagnose.diagnosisDate}</p>
+                            <p>
+                                <strong>Date:</strong>{" "}
+                                {format(new Date(diagnose.diagnosisDate), "MMM dd, yyyy")}
+                            </p>
                             <p><strong>Details:</strong> {diagnose.diagnose}</p>
                         </div>
                     ))
