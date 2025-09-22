@@ -15,7 +15,7 @@ function NewEncounterPage() {
     const handleSubmit = (e) => {
         e.preventDefault();
         const encounterData = { encounterDate: date, reason, notes, patientId: id };
-        console.log('Encounter Data:', encounterData);
+        console.log('Encounter Data what:', encounterData);
         console.log('User Role:', role);
         apiRequest('POST', `/encounters/new/patient/${id}`, encounterData)
             .then(response => {
