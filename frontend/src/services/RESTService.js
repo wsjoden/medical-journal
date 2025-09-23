@@ -66,7 +66,16 @@ export const apiRequestFile = (method, url, formData) => {
     const requestURL = url.startsWith("http") ? url : baseURL + url;
     console.log("Request URL:", requestURL);
 
-    const axiosInstance = axios.create();
+    // Clean axios Instance to not convert file into string
+    const axiosInstance = axios.create({
+        transformRequest: [function (data) {
+            // Don't transform FormData - return as-is
+            return data;
+        }],
+        transformResponse: [function (data) {
+            return data;
+        }]
+    });
 
     return axiosInstance({
         method: method,
