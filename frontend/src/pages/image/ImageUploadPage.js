@@ -25,6 +25,11 @@ const ImageUploadPage = () => {
             formData.append("name", name);
             formData.append("file", file);
 
+            console.log('FormData contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
+
             console.log("file to be uploaded: ", file);
 
             const response = await apiRequestFile('POST', '/images/upload', formData);
@@ -45,50 +50,6 @@ const ImageUploadPage = () => {
             setUploading(false);
         }
     };
-
-    // useEffect(() => {
-    //     const form = document.getElementById("form");
-
-    //     form.addEventListener("submit", submitForm);
-
-    //     async function submitForm(e) {
-    //         e.preventDefault();
-    //         const name = document.getElementById("name");
-    //         const fileInput = document.getElementById("file");
-    //         const formData = new FormData();
-    //         formData.append("name", name.value);
-    //         formData.append("file", fileInput.files[0]); // Append single file
-
-    //         // Log the file details to the console
-    //         console.log('File to be uploaded:', fileInput.files[0]);
-
-    //         apiRequest('POST', '/images/upload',)
-
-    //         try {
-    //             const response = await fetch("http://localhost:8085/images/upload", {
-    //                 method: 'POST',
-    //                 body: formData,
-    //                 headers: {
-    //                     'Authorization': `Bearer ${localStorage.getItem('token')}`
-    //                 }
-    //             });
-
-    //             if (!response.ok) {
-    //                 throw new Error('Network response was not ok');
-    //             }
-
-    //             const data = await response.json();
-    //             console.log('File uploaded successfully:', data);
-    //         } catch (error) {
-    //             console.error('Error occurred:', error);
-    //         }
-    //     }
-
-    //     // Cleanup event listener on component unmount
-    //     return () => {
-    //         form.removeEventListener("submit", submitForm);
-    //     };
-    // }, []);
 
     return (
         <div className="container">
