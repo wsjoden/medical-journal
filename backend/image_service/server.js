@@ -180,12 +180,20 @@ app.get("/images/list", verifyJwt, checkRole(["Doctor", "Other_Staff"]), (req, r
 
 app.get("/images/download/:filename", verifyJwt, checkRole(["Doctor", "Other_Staff", "Patient"]), (req, res) => {
     const filename = req.params.filename;
+    console.log('=== Download Request ===');
+    console.log('Requested filename:', filename);
+    console.log('User:', req.auth.preferred_username);
+
     const filePath = path.join(__dirname, 'uploads', filename);
+    console.log('Full file path:', filePath);
+    console.log('File exists:', fs.existsSync(filePath));
 
     if (!fs.existsSync(filePath) || !filePath.startsWith(path.join(__dirname, 'uploads'))) {
+        console.log('File not found or path validation failed');
         return res.status(404).json({ message: "File not found" });
     }
 
+    console.log('Sending file successfully');
     res.sendFile(filePath);
 });
 
