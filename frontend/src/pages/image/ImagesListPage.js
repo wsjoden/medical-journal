@@ -42,14 +42,35 @@ const UploadedImagesList = () => {
     const loadImage = async (filename) => {
         if (imageUrls[filename] || loadingImages[filename]) return;
 
+        console.log(`Loading image: ${filename}`); // Debug which image is being loaded
         setLoadingImages(prev => ({ ...prev, [filename]: true }));
 
         try {
             const response = await apiRequestBlob('GET', `/images/download/${filename}`);
+
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            console.log('Response data type:', typeof response.data);
+            console.log('Response data size:', response.data?.size || 'unknown');
+
+            // Validate response
+            if (!response.data) {
+                throw new Error('No data received from server');
+            }
+
+            if (response.data.size === 0) {
+                throw new Error('Received empty file');
+            }
+
             const url = window.URL.createObjectURL(response.data);
+            console.log(`Created blob URL for ${filename}:`, url); // Debug confirm blob creation
+
             setImageUrls(prev => ({ ...prev, [filename]: url }));
         } catch (error) {
-            console.error('Failed to load image:', error);
+            console.error(`Failed to load image ${filename}:`, error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+            console.error('Full error object:', error);
         } finally {
             setLoadingImages(prev => ({ ...prev, [filename]: false }));
         }
