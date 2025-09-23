@@ -68,7 +68,7 @@ export const apiRequestFile = (method, url, formData) => {
 
     const axiosInstance = axios.create();
 
-    return axiosIntance({
+    return axiosInstance({
         method: method,
         url: requestURL,
         data: formData,
