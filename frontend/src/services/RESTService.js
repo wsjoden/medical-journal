@@ -66,6 +66,8 @@ export const apiRequestFile = (method, url, formData) => {
     const requestURL = url.startsWith("http") ? url : baseURL + url;
     console.log("Request URL:", requestURL);
 
+    const axiosInstance = axios.create();
+
     return axios({
         method: method,
         url: requestURL,
