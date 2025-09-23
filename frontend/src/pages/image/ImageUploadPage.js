@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useState } from 'react';
 import '../../styles/ImageUploadPage.css';
-import { apiRequest, apiRequestFile } from '../../services/RESTService';
+import { apiRequestFile } from '../../services/RESTService';
 
 const ImageUploadPage = () => {
 
