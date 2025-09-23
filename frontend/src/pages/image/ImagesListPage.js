@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { apiRequest } from "../../services/RESTService";
+import { apiRequest, apiRequestBlob } from "../../services/RESTService";
 import { Link } from "react-router-dom";
 
 const UploadedImagesList = () => {
     const [files, setFiles] = useState([]);
+    const [imageUrls, setImageUrls] = useState({});
+    const [loadingImages, setLoadingImages] = useState({});
 
-    const getImageUrl = (filename) => {
-        const baseURL = process.env.REACT_APP_IMAGE_SERVICE_URL || 'https://medical-app-image-service.app.cloud.cbh.kth.se';
-        return `${baseURL}/images/download/${filename}`;
-    };
-
+    // Fetch Image files
     useEffect(() => {
         const fetchFiles = async () => {
             try {
@@ -22,6 +20,40 @@ const UploadedImagesList = () => {
 
         fetchFiles();
     }, []);
+
+    // Load images when file state changes.
+    useEffect(() => {
+        files.forEach(file => {
+            if (file.mimetype && file.mimetype.startsWith('image/')) {
+                loadImage(file.filename);
+            }
+        });
+    }, [files]);
+
+    // Memory Cleanup
+    useEffect(() => {
+        return () => {
+            Object.values(imageUrls).forEach(url => {
+                window.URL.revokeObjectURL(url);
+            });
+        };
+    }, []);
+
+    const loadImage = async (filename) => {
+        if (imageUrls[filename] || loadingImages[filename]) return;
+
+        setLoadingImages(prev => ({ ...prev, [filename]: true }));
+
+        try {
+            const response = await apiRequestBlob('GET', `/images/download/${filename}`);
+            const url = window.URL.createObjectURL(response.data);
+            setImageUrls(prev => ({ ...prev, [filename]: url }));
+        } catch (error) {
+            console.error('Failed to load image:', error);
+        } finally {
+            setLoadingImages(prev => ({ ...prev, [filename]: false }));
+        }
+    };
 
     return (
         <div>
@@ -47,24 +79,24 @@ const UploadedImagesList = () => {
 
                         {file.mimetype && file.mimetype.startsWith('image/') ? (
                             <div>
-                                <img
-                                    src={getImageUrl(file.filename)}
-                                    alt={file.name}
-                                    style={{
-                                        width: '100%',
-                                        maxHeight: '150px',
-                                        objectFit: 'cover',
-                                        marginBottom: '10px'
-                                    }}
-                                />
-                                <a
-                                    href={getImageUrl(file.filename)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{ color: '#007bff', textDecoration: 'none' }}
-                                >
-                                    View Full Size
-                                </a>
+                                {loadingImages[file.filename] ? (
+                                    <div style={{ height: '150px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        Loading...
+                                    </div>
+                                ) : imageUrls[file.filename] ? (
+                                    <img
+                                        src={imageUrls[file.filename]}
+                                        alt={file.name}
+                                        style={{
+                                            width: '100%',
+                                            maxHeight: '150px',
+                                            objectFit: 'cover',
+                                            marginBottom: '10px'
+                                        }}
+                                    />
+                                ) : (
+                                    <div>Failed to load image</div>
+                                )}
                             </div>
                         ) : (
                             <p>File: {file.originalname}</p>
