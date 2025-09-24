@@ -37,7 +37,7 @@ public class UserResource {
     }
 
     @GET
-    @RolesAllowed({ "doctor", "other_staff" })
+    @RolesAllowed({ "Doctor", "Other_Staff" })
     public Uni<Response> searchPatients(@Context HttpHeaders headers,
             @QueryParam("genericSearch") String genericSearch,
             @QueryParam("firstName") String firstName,
