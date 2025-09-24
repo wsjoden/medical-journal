@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../services/RESTService';
 import PatientSearchBar from '../components/PatientSearchBar';
 import '../styles/PatientPage.css';
-import {fetchSearchResults} from "../services/SearchService";
+import { fetchSearchResults } from "../services/SearchService";
 
 function PatientPage() {
     const [patients, setPatients] = useState([]);
@@ -57,19 +57,18 @@ function PatientPage() {
         const term = searchTerm.toLowerCase();
         const filtered = patients.filter(patient =>
             patient.firstName.toLowerCase().includes(term) ||
-            patient.lastName.toLowerCase().includes(term) ||
-            patient.ssn.includes(term)
+            patient.lastName.toLowerCase().includes(term)
         );
         setFilteredPatients(filtered);
     };
 
     const handleAdvancedSearch = async (filters) => {
-       try {
-           const searchResults = await fetchSearchResults("", filters);
-              setFilteredPatients(searchResults);
-       } catch (error) {
-           console.error('Error fetching search results:', error);
-       }
+        try {
+            const searchResults = await fetchSearchResults("", filters);
+            setFilteredPatients(searchResults);
+        } catch (error) {
+            console.error('Error fetching search results:', error);
+        }
     };
 
     if (loading) {
@@ -85,7 +84,7 @@ function PatientPage() {
                     {filteredPatients.map((patient, index) => (
                         <div key={index} className="patient-row">
                             <Link to={`/patient/${patient.userId}`} className="patient-link">
-                                {patient.ssn} - {patient.lastName}, {patient.firstName}
+                                {patient.lastName}, {patient.firstName}
                             </Link>
                             <button
                                 onClick={() => toggleDropdown(index)}
