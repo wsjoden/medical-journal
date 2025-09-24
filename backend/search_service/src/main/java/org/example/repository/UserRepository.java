@@ -19,10 +19,10 @@ public class UserRepository implements PanacheRepository<User> {
             String diagnose,
             String encounterDate,
             String observation,
+            String staffUserName,
             String staffFirstName,
-            String staffLastName
-    ) {
-        StringBuilder query = new StringBuilder("SELECT u FROM User u WHERE u.role = 'patient' ");
+            String staffLastName) {
+        StringBuilder query = new StringBuilder("SELECT u FROM User u WHERE u.role = 'Patient' ");
         Map<String, Object> params = new HashMap<>();
 
         if (genericSearch != null && !genericSearch.isEmpty()) {
@@ -48,7 +48,8 @@ public class UserRepository implements PanacheRepository<User> {
         if (encounterDate != null && !encounterDate.isEmpty()) {
             try {
                 LocalDate date = LocalDate.parse(encounterDate);
-                query.append("AND u.id IN (SELECT e.patientUserId FROM Encounter e WHERE e.encounterDate = :encounterDate) ");
+                query.append(
+                        "AND u.id IN (SELECT e.patientUserId FROM Encounter e WHERE e.encounterDate = :encounterDate) ");
                 params.put("encounterDate", date);
             } catch (Exception e) {
                 throw new IllegalArgumentException("Invalid date format for encounterDate: " + encounterDate);
@@ -56,21 +57,41 @@ public class UserRepository implements PanacheRepository<User> {
         }
 
         if (observation != null && !observation.isEmpty()) {
-            query.append("AND u.id IN (SELECT o.patientUserId FROM Observation o WHERE o.observation LIKE :observation) ");
+            query.append(
+                    "AND u.id IN (SELECT o.patientUserId FROM Observation o WHERE o.observation LIKE :observation) ");
             params.put("observation", "%" + observation + "%");
         }
 
+        if (staffUserName != null && !staffUserName.isEmpty()) {
+            query.append("AND u.id IN (")
+                    .append("SELECT DISTINCT e.patientUserId FROM Encounter e JOIN User s ON e.staffUserId = s.id WHERE s.username LIKE :staffUserName ")
+                    .append("UNION ")
+                    .append("SELECT DISTINCT o.patientUserId FROM Observation o JOIN User s ON o.staffUserId = s.id WHERE s.username LIKE :staffUserName ")
+                    .append("UNION ")
+                    .append("SELECT DISTINCT d.patientUserId FROM Diagnose d JOIN User s ON d.staffUserId = s.id WHERE s.username LIKE :staffUserName")
+                    .append(") ");
+            params.put("staffUserName", "%" + staffUserName + "%");
+        }
+
         if (staffFirstName != null && !staffFirstName.isEmpty()) {
-            query.append("AND u.id IN (SELECT e.patientUserId FROM Encounter e JOIN User s ON e.staffUserId = s.id WHERE s.firstName LIKE :staffFirstName ");
-            query.append("OR u.id IN (SELECT o.patientUserId FROM Observation o JOIN User s ON o.staffUserId = s.id WHERE s.firstName LIKE :staffFirstName) ");
-            query.append("OR u.id IN (SELECT d.patientUserId FROM Diagnose d JOIN User s ON d.staffUserId = s.id WHERE s.firstName LIKE :staffFirstName)) ");
+            query.append("AND u.id IN (")
+                    .append("SELECT DISTINCT e.patientUserId FROM Encounter e JOIN User s ON e.staffUserId = s.id WHERE s.firstName LIKE :staffFirstName ")
+                    .append("UNION ")
+                    .append("SELECT DISTINCT o.patientUserId FROM Observation o JOIN User s ON o.staffUserId = s.id WHERE s.firstName LIKE :staffFirstName ")
+                    .append("UNION ")
+                    .append("SELECT DISTINCT d.patientUserId FROM Diagnose d JOIN User s ON d.staffUserId = s.id WHERE s.firstName LIKE :staffFirstName")
+                    .append(") ");
             params.put("staffFirstName", "%" + staffFirstName + "%");
         }
 
         if (staffLastName != null && !staffLastName.isEmpty()) {
-            query.append("AND u.id IN (SELECT e.patientUserId FROM Encounter e JOIN User s ON e.staffUserId = s.id WHERE s.lastName LIKE :staffLastName ");
-            query.append("OR u.id IN (SELECT o.patientUserId FROM Observation o JOIN User s ON o.staffUserId = s.id WHERE s.lastName LIKE :staffLastName) ");
-            query.append("OR u.id IN (SELECT d.patientUserId FROM Diagnose d JOIN User s ON d.staffUserId = s.id WHERE s.lastName LIKE :staffLastName)) ");
+            query.append("AND u.id IN (")
+                    .append("SELECT DISTINCT e.patientUserId FROM Encounter e JOIN User s ON e.staffUserId = s.id WHERE s.lastName LIKE :staffLastName ")
+                    .append("UNION ")
+                    .append("SELECT DISTINCT o.patientUserId FROM Observation o JOIN User s ON o.staffUserId = s.id WHERE s.lastName LIKE :staffLastName ")
+                    .append("UNION ")
+                    .append("SELECT DISTINCT d.patientUserId FROM Diagnose d JOIN User s ON d.staffUserId = s.id WHERE s.lastName LIKE :staffLastName")
+                    .append(") ");
             params.put("staffLastName", "%" + staffLastName + "%");
         }
 
