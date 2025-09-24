@@ -56,7 +56,7 @@ const ImageUploadPage = () => {
             <h1>File Upload</h1>
             <form onSubmit={handleSubmit}>
                 <div className="input-group">
-                    <label htmlFor='name'>Your name</label>
+                    <label htmlFor='name'>Image name</label>
                     <input
                         name='name'
                         id='name'
