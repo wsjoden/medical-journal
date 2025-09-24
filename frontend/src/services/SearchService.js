@@ -1,37 +1,36 @@
 import { apiRequest } from "./RESTService";
 
 /**
- * Construct a search URL based on the search parameters & filters
- * @param {string} searchTerm - The search term to use
- * @param {object} filters - The filters to apply
- * @returns {string} - The constructed URL
- */
-function constructSearchURL(searchTerm, filters) {
-    console.log("Entered constructSearchURL function");
-    let url = `/search?q=${encodeURIComponent(searchTerm)}`;
-
-    if (filters.genericSearch) url += `&genericSearch=${encodeURIComponent(filters.genericSearch)}`;
-    if (filters.staffFirstName) url += `&staffFirstName=${encodeURIComponent(filters.staffFirstName)}`;
-    if (filters.staffLastName) url += `&staffLastName=${encodeURIComponent(filters.staffLastName)}`;
-    if (filters.staffEmail) url += `&staffEmail=${encodeURIComponent(filters.staffEmail)}`;
-    if (filters.staffSSN) url += `&staffSSN=${encodeURIComponent(filters.staffSSN)}`;
-    if (filters.encounterDate) url += `&encounterDate=${encodeURIComponent(filters.encounterDate)}`;
-    if (filters.observation) url += `&observation=${encodeURIComponent(filters.observation)}`;
-    if (filters.diagnose) url += `&diagnose=${encodeURIComponent(filters.diagnose)}`;
-
-    return url;
-}
-
-/**
  * Fetches search results using the `apiRequest` service.
  * @param {string} searchTerm - The basic search term.
  * @param {Object} filters - Advanced search filters.
  * @returns {Promise<Object>} - The search results.
  */
 async function fetchSearchResults(searchTerm, filters = {}) {
-    const url = constructSearchURL(searchTerm, filters);
+    console.log('Searching for:', { searchTerm, filters });
+
     try {
+        const queryParams = new URLSearchParams();
+
+        // Use searchTerm as genericSearch if no specific genericSearch is provided
+        if (searchTerm && !filters.genericSearch) {
+            queryParams.append('genericSearch', searchTerm);
+        }
+
+        if (filters.genericSearch) queryParams.append('genericSearch', filters.genericSearch);
+        if (filters.firstName) queryParams.append('firstName', filters.firstName);
+        if (filters.lastName) queryParams.append('lastName', filters.lastName);
+        if (filters.diagnose) queryParams.append('diagnose', filters.diagnose);
+        if (filters.encounterDate) queryParams.append('encounterDate', filters.encounterDate);
+        if (filters.observation) queryParams.append('observation', filters.observation);
+        if (filters.staffUserName) queryParams.append('staffUserName', filters.staffUserName);
+        if (filters.staffFirstName) queryParams.append('staffFirstName', filters.staffFirstName);
+        if (filters.staffLastName) queryParams.append('staffLastName', filters.staffLastName);
+
+        const url = `/search?${queryParams.toString()}`;
+
         const response = await apiRequest('GET', url);
+
         return response.data;
     } catch (error) {
         console.error('Error fetching search results:', error);
