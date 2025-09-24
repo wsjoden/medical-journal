@@ -45,6 +45,7 @@ public class UserResource {
             @QueryParam("diagnose") String diagnose,
             @QueryParam("encounterDate") String encounterDate,
             @QueryParam("observation") String observation,
+            @QueryParam("staffUserName") String staffUserName,
             @QueryParam("staffFirstName") String staffFirstName,
             @QueryParam("staffLastName") String staffLastName) {
 
@@ -77,6 +78,8 @@ public class UserResource {
                     System.out.println("Encounter Date: " + encounterDate);
                 if (observation != null)
                     System.out.println("Observation: " + observation);
+                if (staffUserName != null)
+                    System.out.println("Staff User Name: " + staffUserName);
                 if (staffFirstName != null)
                     System.out.println("Staff First Name: " + staffFirstName);
                 if (staffLastName != null)
@@ -90,6 +93,7 @@ public class UserResource {
                     diagnose,
                     encounterDate,
                     observation,
+                    staffUserName,
                     staffFirstName,
                     staffLastName);
             return Response.ok(patients).build();
