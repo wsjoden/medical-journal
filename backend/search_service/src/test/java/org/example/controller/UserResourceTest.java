@@ -37,24 +37,24 @@ public class UserResourceTest {
         List<User> mockUsers = createMockUsers();
 
         Mockito.when(mock.searchPatients(
-                        Mockito.any(), Mockito.any(), Mockito.any(),
-                        Mockito.any(), Mockito.any(), Mockito.any(),
-                        Mockito.any(), Mockito.any()))
+                Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(mockUsers);
 
         Mockito.when(mock.searchPatients(
-                        "john", null, null, null, null, null, null, null))
+                "john", null, null, null, null, null, null, null, null))
                 .thenReturn(mockUsers);
 
         Mockito.when(mock.searchPatients(
-                        null, "John", "Doe", null, null, null, null, null))
+                null, "John", "Doe", null, null, null, null, null, null))
                 .thenReturn(mockUsers.subList(0, 1));
 
         QuarkusMock.installMockForType(mock, UserRepository.class);
     }
 
     @Test
-    @TestSecurity(user = "doctor123", roles = {"doctor"})
+    @TestSecurity(user = "doctor123", roles = { "doctor" })
     public void testTestEndpointWithDoctorRole() {
         given()
                 .when().get("/search/test")
@@ -64,7 +64,7 @@ public class UserResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "staff123", roles = {"other_staff"})
+    @TestSecurity(user = "staff123", roles = { "other_staff" })
     public void testTestEndpointWithStaffRole() {
         given()
                 .when().get("/search/test")
@@ -74,7 +74,7 @@ public class UserResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "patient123", roles = {"patient"})
+    @TestSecurity(user = "patient123", roles = { "patient" })
     public void testTestEndpointWithPatientRole() {
         given()
                 .when().get("/search/test")
@@ -84,7 +84,7 @@ public class UserResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "doctor123", roles = {"doctor"})
+    @TestSecurity(user = "doctor123", roles = { "doctor" })
     public void testSearchPatientsWithGenericSearch() {
         given()
                 .queryParam("genericSearch", "john")
@@ -97,7 +97,7 @@ public class UserResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "doctor123", roles = {"doctor"})
+    @TestSecurity(user = "doctor123", roles = { "doctor" })
     public void testSearchPatientsWithSpecificParams() {
         given()
                 .queryParam("firstName", "John")
@@ -111,7 +111,7 @@ public class UserResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "patient123", roles = {"patient"})
+    @TestSecurity(user = "patient123", roles = { "patient" })
     public void testSearchPatientsUnauthorized() {
         given()
                 .queryParam("genericSearch", "john")
@@ -121,7 +121,7 @@ public class UserResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "doctor123", roles = {"doctor"})
+    @TestSecurity(user = "doctor123", roles = { "doctor" })
     public void testSearchPatientsAllParameters() {
         given()
                 .queryParam("firstName", "John")
@@ -129,6 +129,7 @@ public class UserResourceTest {
                 .queryParam("diagnose", "mock diagnose")
                 .queryParam("encounterDate", "2023-01-15")
                 .queryParam("observation", "mock observation")
+                .queryParam("staffUserName", "doctor123")
                 .queryParam("staffFirstName", "Dr")
                 .queryParam("staffLastName", "Smith")
                 .when().get("/search")
@@ -136,7 +137,7 @@ public class UserResourceTest {
                 .statusCode(200)
                 .body("size()", is(2));
     }
-    
+
     private List<User> createMockUsers() {
         List<User> users = new ArrayList<>();
 
