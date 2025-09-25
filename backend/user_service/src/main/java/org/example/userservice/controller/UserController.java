@@ -134,48 +134,6 @@ public class UserController {
         return new ResponseEntity<>(patients, HttpStatus.OK);
     }
 
-    // // Update user
-    // @PutMapping("/profile/{id}")
-    // @PreAuthorize("hasRole('Patient') or hasRole('Doctor') or
-    // hasRole('Other_Staff')")
-    // public ResponseEntity<User> updateUser(
-    // @RequestHeader("Authorization") String token,
-    // @RequestBody UserProfileDTO userProfileDTO) {
-    // System.out.println("updateUser() called");
-
-    // User user = userService.findById(userProfileDTO.getId())
-    // .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    // user.setUsername(userProfileDTO.getUsername());
-    // user.setEmail(userProfileDTO.getEmail());
-    // userService.updateUser(user);
-
-    // if (Role.valueOf(userProfileDTO.getRole()) == Role.Patient) {
-    // Patient patient = patientService.findPatientByUserId(user.getId());
-    // patient.setFirstName(userProfileDTO.getFirstName());
-    // patient.setLastName(userProfileDTO.getLastName());
-    // patient.setSSN(userProfileDTO.getSSN());
-    // patient.setEmail(userProfileDTO.getEmail());
-    // patientService.updatePatient(patient);
-    // } else if (Role.valueOf(userProfileDTO.getRole()) == Role.Doctor
-    // || Role.valueOf(userProfileDTO.getRole()) == Role.Other_Staff) {
-    // Optional<Staff> optionalStaff = staffService.findStaffByUserId(user.getId());
-    // if (optionalStaff.isPresent()) {
-    // Staff staff = optionalStaff.get();
-    // staff.setFirstName(userProfileDTO.getFirstName());
-    // staff.setLastName(userProfileDTO.getLastName());
-    // staff.setSSN(userProfileDTO.getSSN());
-    // staff.setEmail(userProfileDTO.getEmail());
-    // staffService.updateStaff(staff);
-    // } else {
-    // return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-    // }
-    // } else {
-    // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-    // }
-    // System.out.println("everything is fine :()");
-    // return new ResponseEntity<>(user, HttpStatus.OK);
-    // }
-
     // Get user details by ID
     @GetMapping("/details/{userId}")
     @PreAuthorize("hasRole('Doctor') or hasRole('Patient')")
