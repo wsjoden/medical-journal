@@ -33,7 +33,7 @@ public class UserService {
     }
 
     // public Optional<User> findById(Long userId) {
-    //     return userRepository.findById(userId);
+    // return userRepository.findById(userId);
     // }
 
     public List<User> findAllUsers() {
@@ -44,59 +44,8 @@ public class UserService {
         return userRepository.findAllPatients();
     }
 
-    // public List<User> findUserByRole(Role role) {
-    //     return userRepository.findByRole(role);
-    // }
-
-    // public User updateUser(User user) {
-    //     if (!userRepository.existsById(user.getId())) {
-    //         throw new IllegalArgumentException("User does not exist");
-    //     }
-    //     return userRepository.save(user);
-    // }
-
-    // public void deleteUser(Long id) {
-    //     User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User does not exist"));
-    //     userRepository.deleteById(user.getId());
-    // }
-
-
     public User authenticateUser(String username, String password) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'authenticateUser'");
     }
-
-    // public void syncUser(Jwt jwt) {
-    //     System.out.println("Syncing user");
-    //     System.out.println("Claims: " + jwt.getClaims());
-    //     String userId = jwt.getClaim("sub");
-    //     String username = jwt.getClaim("preferred_username");
-    //     String firstName = jwt.getClaim("given_name");
-    //     String lastName = jwt.getClaim("family_name");
-    //     String role = jwt.getClaim("role");
-
-    //     if (!userRepository.existsById(userId)) {
-    //         System.out.println("New user found! Adding to database");
-    //         User user = new User();
-    //         user.setUserId(userId);
-    //         user.setUsername(username);
-    //         user.setFirstName(firstName);
-    //         user.setLastName(lastName);
-    //         user.setRole(role);
-    //         System.out.println("user: " + user.toString());
-    //         userRepository.save(user);
-    //     } else {
-    //         User existingUser = userRepository.findById(userId).orElseThrow();
-    //         if (!existingUser.getUsername().equals(username)) {
-    //             existingUser.setUsername(username);
-    //             userRepository.save(existingUser);
-    //         } else if (!existingUser.getFirstName().equals(firstName)) {
-    //             existingUser.setFirstName(firstName);
-    //             userRepository.save(existingUser);
-    //         } else if (!existingUser.getLastName().equals(lastName)) {
-    //             existingUser.setLastName(lastName);
-    //             userRepository.save(existingUser);
-    //         }
-    //     }
-    // }
 }
