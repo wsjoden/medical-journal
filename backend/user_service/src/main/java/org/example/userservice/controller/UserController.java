@@ -31,16 +31,11 @@ import java.util.Optional;
 @RequestMapping("/user")
 public class UserController {
 
-    private final WebClient.Builder webClientBuilder;
     private final UserService userService;
 
-    @Value("${medical.data.service.url}")
-    private String medicalDataServiceUrl;
-
     @Autowired
-    public UserController(WebClient.Builder webClientBuilder, UserService userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.webClientBuilder = webClientBuilder;
     }
 
     @GetMapping("/test")
@@ -61,64 +56,25 @@ public class UserController {
     @GetMapping("/profile")
     @PreAuthorize("hasRole('Patient') or hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<UserProfileDTO> getUserProfile(Authentication authentication) {
-        System.out.println("getUserProfile() called");
-
         String userId = authentication.getName();
 
         if (userId == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        User user = userService.findByUserId(userId);
+        UserProfileDTO profile = userService.getUserProfile(userId, authentication);
 
-        // Create user from Jwt
-        if (user == null) {
-            System.out.println("User not found in db, creating from jwt...");
-            user = createUserFromJWT(authentication);
-            if (user != null) {
-                userService.saveUser(user);
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-            }
+        if (profile == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        UserProfileDTO profile = new UserProfileDTO(userId, user.getUsername(), user.getRole(), user.getFirstName(),
-                user.getLastName());
 
-        System.out.println(profile.toString());
-        return new ResponseEntity<>(profile, HttpStatus.OK);
-    }
-
-    private User createUserFromJWT(Authentication authentication) {
-        try {
-            if (authentication.getCredentials() instanceof Jwt) {
-                Jwt jwt = (Jwt) authentication.getCredentials();
-
-                String userId = jwt.getSubject();
-                String username = jwt.getClaimAsString("preferred_username");
-                String firstname = jwt.getClaimAsString("given_name");
-                String lastname = jwt.getClaimAsString("family_name");
-                String role = jwt.getClaimAsString("role");
-
-                User user = new User();
-                user.setUserId(userId);
-                user.setUsername(username);
-                user.setFirstName(firstname);
-                user.setLastName(lastname);
-                user.setRole(role);
-
-                return user;
-            }
-        } catch (Exception e) {
-            System.err.println("Error creating user from jwt:" + e.getMessage());
-        }
-        return null;
+        return ResponseEntity.ok(profile);
     }
 
     // Get all users
     @GetMapping
     @PreAuthorize("hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<List<User>> getAllUsers() {
-        System.out.println("getAllUsers() called");
         return new ResponseEntity<>(userService.findAllUsers(), HttpStatus.OK);
     }
 
@@ -126,12 +82,7 @@ public class UserController {
     @GetMapping("/patients")
     @PreAuthorize("hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<List<User>> getAllPatients() {
-        System.out.println("getAllPatients() called");
-        List<User> patients = userService.findAllPatients();
-        for (User patient : patients) {
-            System.out.println(patient.toString());
-        }
-        return new ResponseEntity<>(patients, HttpStatus.OK);
+        return ResponseEntity.ok(userService.findAllPatients());
     }
 
     // Get user details by ID
@@ -139,134 +90,61 @@ public class UserController {
     @PreAuthorize("hasRole('Doctor') or hasRole('Patient')")
     public ResponseEntity<PatientProfileDetailsDTO> getUserDetailsById(Authentication authentication,
             @PathVariable String userId) {
-        System.out.println("getUserById() called with userId: " + userId);
 
         String requesterId = authentication.getName();
 
-        System.out.println("authority of user: " + authentication.getAuthorities());
-
         if (requesterId == null) {
-            System.out.println("requestedId is null");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        } else if (!(authentication.getAuthorities().stream()
-                .anyMatch(auth -> auth.getAuthority().equalsIgnoreCase("Doctor") ||
-                        auth.getAuthority().equalsIgnoreCase("ROLE_Doctor"))
-                ||
-                requesterId.equals(userId))) {
-            System.out.println("User is not authorized to view this profile");
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-        System.out.println("User is authorized to view this profile");
-
-        String token = null;
-        if (authentication != null && authentication.getCredentials() instanceof Jwt) {
-            Jwt jwt = (Jwt) authentication.getCredentials();
-            token = jwt.getTokenValue();
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<DiagnoseDTO> diagnoseList = getDiagnosesByUserId(userId, token);
-        List<EncounterDTO> encounterList = getEncountersByUserId(userId, token);
-        List<ObservationDTO> observationList = getObservationsByUserId(userId, token);
-
-        User user = userService.findByUserId(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        // Check if user is allowed to access requested profile
+        if (!userService.userDetailsAuthentication(requesterId, userId, authentication)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        PatientProfileDetailsDTO userDetails = new PatientProfileDetailsDTO(userId, user.getFirstName(),
-                user.getLastName(), diagnoseList, encounterList, observationList);
-        return new ResponseEntity<>(userDetails, HttpStatus.OK);
+        // Extract token
+        String token = extractToken(authentication);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Get details
+        PatientProfileDetailsDTO userDetails = userService.getPatientDetails(
+                userId, token, authentication);
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        return ResponseEntity.ok(userDetails);
     }
 
     // Get user by username
     @GetMapping("/username/{username}")
     public ResponseEntity<String> getUserByUsername(@PathVariable String username) {
-        System.out.println("getUserByUsername() called with username: " + username);
-
         User user = userService.findByUsername(username);
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
-        System.out.println("User found with userId: " + user.getUserId());
-
-        return new ResponseEntity<>(user.getUserId(), HttpStatus.OK);
+        return ResponseEntity.ok(user.getUserId());
     }
 
     // Get user by userId
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable String userId) {
-        System.out.println("getUserById() called with userId: " + userId);
-
-        User user = userService.findByUserId(userId);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    @PreAuthorize("hasRole('Patient') or hasRole('Doctor') or hasRole('Other_Staff')")
+    public ResponseEntity<UserDTO> getUserById(Authentication authentication, @PathVariable String userId) {
+        UserDTO userDTO = userService.getUserDTOByUserId(userId, authentication);
+        if (userDTO == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        UserDTO userDTO = new UserDTO(user.getUserId(), user.getUsername());
-        return new ResponseEntity<>(userDTO, HttpStatus.OK);
+        return ResponseEntity.ok(userDTO);
     }
 
-    // // Delete user
-    // @DeleteMapping("/{id}")
-    // public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-    // System.out.println("deleteUser() called");
-    // User user = userService.findById(id)
-    // .orElseThrow(() -> new IllegalArgumentException("User not found"));
-    // if (user.getRole() == Role.Patient) {
-    // patientService.deletePatient(id);
-    // } else if (user.getRole() == Role.Doctor || user.getRole() ==
-    // Role.Other_Staff) {
-    // staffService.deleteStaff(id);
-    // }
-    // userService.deleteUser(id);
-    // return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    // }
-
-    public List<DiagnoseDTO> getDiagnosesByUserId(String patientUserId, String token) {
-        // String medicalDataServiceURL =
-        // "http://medical-data-service:8084/diagnoses/patient/" + patientUserId;
-        String url = medicalDataServiceUrl + "/diagnoses/patient/" + patientUserId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .onStatus(status -> status == HttpStatus.NOT_FOUND, clientResponse -> Mono.empty())
-                .bodyToFlux(DiagnoseDTO.class)
-                .collectList()
-                .block();
+    private String extractToken(Authentication authentication) {
+        if (authentication != null && authentication.getCredentials() instanceof Jwt) {
+            Jwt jwt = (Jwt) authentication.getCredentials();
+            return jwt.getTokenValue();
+        }
+        return null;
     }
-
-    public List<EncounterDTO> getEncountersByUserId(String patientUserId, String token) {
-        // String medicalDataServiceURL =
-        // "http://medical-data-service:8084/encounters/patient/" + patientUserId;
-        String url = medicalDataServiceUrl + "/encounters/patient/" + patientUserId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .onStatus(status -> status == HttpStatus.NOT_FOUND, clientResponse -> Mono.empty())
-                .bodyToFlux(EncounterDTO.class)
-                .collectList()
-                .block();
-    }
-
-    public List<ObservationDTO> getObservationsByUserId(String patientUserId, String token) {
-        // String medicalDataServiceURL =
-        // "http://medical-data-service:8084/observations/patient/" + patientUserId;
-        String url = medicalDataServiceUrl + "/observations/patient/" + patientUserId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .onStatus(status -> status == HttpStatus.NOT_FOUND, clientResponse -> Mono.empty())
-                .bodyToFlux(ObservationDTO.class)
-                .collectList()
-                .block();
-    }
-
 }
