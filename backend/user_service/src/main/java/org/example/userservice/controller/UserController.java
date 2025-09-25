@@ -58,62 +58,6 @@ public class UserController {
         return "User service is up and running!";
     }
 
-    // @PostMapping("/webhook")
-    // public ResponseEntity<Void> webhook(@RequestBody String payload) {
-    // System.out.println("Webhook called with payload: " + payload);
-
-    // ObjectMapper mapper = new ObjectMapper();
-    // try {
-    // User user = mapper.readValue(payload, User.class);
-    // System.out.println("User: " + user.toString());
-
-    // userService.saveUser(user);
-
-    // } catch (Exception e) {
-    // e.printStackTrace();
-    // }
-    // return new ResponseEntity<>(HttpStatus.OK);
-    // }
-
-    // @PostMapping("/register")
-    // public ResponseEntity<LoginResponseDTO> registerUser(@RequestBody
-    // RegisterRequestDTO registerRequestDTO) {
-    // System.out.println("registerUser() called");
-
-    // User user = userService.registerUser(registerRequestDTO);
-    // if (user == null) {
-    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-    // }
-
-    // JwtDTO jwtDTO = new JwtDTO(user.getUsername(), user.getRole().toString(),
-    // user.getId());
-    // // String token = GenerateJWTToken(jwtDTO);
-    // String token = GenerateKeycloakToken(registerRequestDTO.getUsername(),
-    // registerRequestDTO.getPassword());
-
-    // return ResponseEntity.status(HttpStatus.CREATED).body(new
-    // LoginResponseDTO(token));
-    // }
-
-    // @PostMapping("/login")
-    // public ResponseEntity<LoginResponseDTO> loginUser(@RequestBody
-    // LoginRequestDTO loginRequestDTO) {
-    // System.out.println("loginUser() called");
-
-    // User user = userService.authenticateUser(loginRequestDTO.getUsername(),
-    // loginRequestDTO.getPassword());
-    // if (user == null) {
-    // return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-    // }
-    // System.out.println("Username = " + user.getUsername());
-
-    // // Generate token
-    // String token = GenerateKeycloakToken(loginRequestDTO.getUsername(),
-    // loginRequestDTO.getPassword());
-
-    // return ResponseEntity.ok(new LoginResponseDTO(token));
-    // }
-
     @GetMapping("/profile")
     @PreAuthorize("hasRole('Patient') or hasRole('Doctor') or hasRole('Other_Staff')")
     public ResponseEntity<UserProfileDTO> getUserProfile(Authentication authentication) {
