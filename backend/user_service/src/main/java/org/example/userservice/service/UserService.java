@@ -86,6 +86,26 @@ public class UserService {
                 user.getUsername());
     }
 
+    public UserProfileDTO getUserProfile(String userId, Authentication authentication) {
+        User user = findByUserId(userId);
+
+        if (user == null) {
+            user = createUserFromJwt(authentication);
+            if (user != null) {
+                saveUser(user);
+            } else {
+                return null;
+            }
+        }
+
+        return new UserProfileDTO(
+                userId,
+                user.getUsername(),
+                user.getRole(),
+                user.getFirstName(),
+                user.getLastName());
+    }
+
     // Check if user is Doctor or requester == userId
     public Boolean userDetailsAuthentication(String requesterId, String userId, Authentication authentication) {
         boolean isDoctor = authentication.getAuthorities().stream()

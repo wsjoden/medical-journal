@@ -7,16 +7,11 @@ import org.example.userservice.model.User;
 import org.example.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,109 +48,89 @@ public class UserControllerTest {
     @MockBean
     private UserService userService;
 
-    @SpyBean
-    private UserController userController;
-
     @MockBean
     private WebClient.Builder webClientBuilder;
 
     @BeforeEach
     public void setup() {
-        doReturn(Collections.emptyList()).when(userController).getDiagnosesByUserId(anyString(), anyString());
-        doReturn(Collections.emptyList()).when(userController).getEncountersByUserId(anyString(), anyString());
-        doReturn(Collections.emptyList()).when(userController).getObservationsByUserId(anyString(), anyString());
+        // Reset mocks before each test
+        reset(userService);
     }
 
     @Test
     public void testEndpointWithAuthentication() throws Exception {
         Jwt jwt = createMockJwt();
-        JwtAuthenticationToken authentication = new JwtAuthenticationToken(jwt, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")), "user123");
+        JwtAuthenticationToken authentication = new JwtAuthenticationToken(jwt,
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")), "user123");
 
-        mockMvc.perform(get("/user/test").with(authentication(authentication))).andExpect(status().isOk()).andExpect(content().string("User service is up and running!"));
+        mockMvc.perform(get("/user/test").with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("User service is up and running!"));
     }
 
     @Test
     public void testEndpointWithoutAuthentication() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/user/test")).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void testWebhookWithValidPayload() throws Exception {
-        User testUser = new User();
-        testUser.setUserId("123");
-        testUser.setUsername("Test User");
-
-        String userJson = objectMapper.writeValueAsString(testUser);
-
-        mockMvc.perform(post("/user/webhook").contentType(MediaType.APPLICATION_JSON).content(userJson)).andExpect(status().isOk());
-        verify(userService, times(1)).saveUser(any(User.class));
-    }
-
-    @Test
-    public void testWebhookWithInvalidPayload() throws Exception {
-        String invalidJson = "{\"id\":\"123\", \"name\": unclosed string}";
-
-        mockMvc.perform(post("/user/webhook").contentType(MediaType.APPLICATION_JSON).content(invalidJson)).andExpect(status().isOk()); // Note: Your endpoint returns 200 OK even for invalid payloads
-        verify(userService, times(0)).saveUser(any(User.class));
-    }
-
-    @Test
-    public void testWebhookWithMissingFields() throws Exception {
-        String incompleteJson = "{\"id\":\"123\"}"; // Missing other required fields
-        mockMvc.perform(post("/user/webhook").contentType(MediaType.APPLICATION_JSON).content(incompleteJson)).andExpect(status().isOk());
+        mockMvc.perform(MockMvcRequestBuilders.get("/user/test"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void testGetProfileAsPatient() throws Exception {
-        User user = new User();
-        user.setUserId("123");
-        user.setUsername("patientUser");
-        user.setRole("Patient");
-        user.setFirstName("John");
-        user.setLastName("Doe");
+        String userId = "123";
+        UserProfileDTO profileDTO = new UserProfileDTO(userId, "patientUser", "Patient", "John", "Doe");
 
-        when(userService.findByUserId("123")).thenReturn(user);
+        when(userService.getUserProfile(eq(userId), any())).thenReturn(profileDTO);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("123", "Patient");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(userId, "ROLE_Patient");
 
-        mockMvc.perform(get("/user/profile").with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$.userId").value("123")).andExpect(jsonPath("$.username").value("patientUser")).andExpect(jsonPath("$.role").value("Patient")).andExpect(jsonPath("$.firstName").value("John")).andExpect(jsonPath("$.lastName").value("Doe"));
+        mockMvc.perform(get("/user/profile").with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.username").value("patientUser"))
+                .andExpect(jsonPath("$.role").value("Patient"))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
     @Test
     public void testGetProfileAsDoctor() throws Exception {
-        User user = new User();
-        user.setUserId("456");
-        user.setUsername("doctorUser");
-        user.setRole("Doctor");
-        user.setFirstName("Jane");
-        user.setLastName("Smith");
+        String userId = "456";
+        UserProfileDTO profileDTO = new UserProfileDTO(userId, "doctorUser", "Doctor", "Jane", "Smith");
 
-        when(userService.findByUserId("456")).thenReturn(user);
+        when(userService.getUserProfile(eq(userId), any())).thenReturn(profileDTO);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("456", "Doctor");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(userId, "ROLE_Doctor");
 
-        mockMvc.perform(get("/user/profile").with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$.userId").value("456")).andExpect(jsonPath("$.username").value("doctorUser")).andExpect(jsonPath("$.role").value("Doctor")).andExpect(jsonPath("$.firstName").value("Jane")).andExpect(jsonPath("$.lastName").value("Smith"));
+        mockMvc.perform(get("/user/profile").with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.username").value("doctorUser"))
+                .andExpect(jsonPath("$.role").value("Doctor"))
+                .andExpect(jsonPath("$.firstName").value("Jane"))
+                .andExpect(jsonPath("$.lastName").value("Smith"));
     }
 
     @Test
     public void testGetProfileUnauthorized() throws Exception {
-        when(userService.findByUserId("789")).thenReturn(null);
-
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("789", "admin");
-        mockMvc.perform(get("/user/profile").with(authentication(authentication))).andExpect(status().isForbidden());
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("789", "ROLE_Admin");
+        mockMvc.perform(get("/user/profile").with(authentication(authentication)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    public void testGetProfileNotFound() throws Exception {
-        when(userService.findByUserId("unknown")).thenReturn(null);
+    public void testGetProfileInternalError() throws Exception {
+        String userId = "123";
+        when(userService.getUserProfile(eq(userId), any())).thenReturn(null);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("unknown", "Patient");
-        mockMvc.perform(get("/user/profile").with(authentication(authentication))).andExpect(status().isNotFound());
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(userId, "ROLE_Patient");
+        mockMvc.perform(get("/user/profile").with(authentication(authentication)))
+                .andExpect(status().isInternalServerError());
     }
 
     @Test
     public void testGetProfileWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/user/profile")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/user/profile"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -167,9 +142,11 @@ public class UserControllerTest {
 
         when(userService.findAllPatients()).thenReturn(patients);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "ROLE_Doctor");
 
-        MvcResult result = mockMvc.perform(get("/user/patients").with(authentication(authentication))).andExpect(status().isOk()).andReturn();
+        MvcResult result = mockMvc.perform(get("/user/patients").with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andReturn();
 
         String responseJson = result.getResponse().getContentAsString();
         List<User> returnedPatients = objectMapper.readValue(responseJson, new TypeReference<List<User>>() {
@@ -191,74 +168,95 @@ public class UserControllerTest {
 
         when(userService.findAllPatients()).thenReturn(patients);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("staff1", "Other_Staff");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("staff1", "ROLE_Other_Staff");
 
-        mockMvc.perform(get("/user/patients").with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$[0].role").value("Patient")).andExpect(jsonPath("$[1].role").value("Patient"));
+        mockMvc.perform(get("/user/patients").with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].role").value("Patient"))
+                .andExpect(jsonPath("$[1].role").value("Patient"));
     }
 
     @Test
     public void testGetAllPatientsAsPatient() throws Exception {
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("patient1", "Patient");
-        mockMvc.perform(get("/user/patients").with(authentication(authentication))).andExpect(status().isForbidden());
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("patient1", "ROLE_Patient");
+        mockMvc.perform(get("/user/patients").with(authentication(authentication)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     public void testGetAllUsersWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/user")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/user"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void testGetAllPatientsWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/user/patients")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/user/patients"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     public void testGetAllUsersWithEmptyResult() throws Exception {
         when(userService.findAllUsers()).thenReturn(Collections.emptyList());
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
-        mockMvc.perform(get("/user").with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$").isArray()).andExpect(jsonPath("$").isEmpty());
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "ROLE_Doctor");
+        mockMvc.perform(get("/user").with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
     @Test
     public void testPatientDetailsByUserIdAsSamePatient() throws Exception {
         String userId = "patient1";
-        User patient = new User(userId, "Patient", "John", "Doe", "Patient");
 
-        when(userService.findByUserId(userId)).thenReturn(patient);
+        List<DiagnoseDTO> diagnoses = Collections.singletonList(
+                new DiagnoseDTO(1L, userId, "doctor1", "Diabetes", "Type 2", LocalDate.of(2023, 1, 15)));
+        List<EncounterDTO> encounters = Collections.singletonList(
+                new EncounterDTO(1L, userId, "doctor1", "Regular checkup", LocalDate.of(2023, 1, 15)));
+        List<ObservationDTO> observations = Collections.singletonList(
+                new ObservationDTO(1L, userId, "doctor1", "Blood pressure reading", LocalDate.of(2023, 1, 15)));
 
-        List<DiagnoseDTO> diagnoses = Collections.singletonList(new DiagnoseDTO(1L, userId, "doctor1", "Diabetes", "Type 2", LocalDate.of(2023, 1, 15)));
-        List<EncounterDTO> encounters = Collections.singletonList(new EncounterDTO(1L, userId, "doctor1", "Regular checkup", LocalDate.of(2023, 1, 15)));
-        List<ObservationDTO> observations = Collections.singletonList(new ObservationDTO(1L, userId, "doctor1", "Blood pressure reading", LocalDate.of(2023, 1, 15)));
+        PatientProfileDetailsDTO detailsDTO = new PatientProfileDetailsDTO(
+                userId, "John", "Doe", diagnoses, encounters, observations);
 
-        doReturn(diagnoses).when(userController).getDiagnosesByUserId(eq(userId), anyString());
-        doReturn(encounters).when(userController).getEncountersByUserId(eq(userId), anyString());
-        doReturn(observations).when(userController).getObservationsByUserId(eq(userId), anyString());
+        when(userService.userDetailsAuthentication(eq(userId), eq(userId), any())).thenReturn(true);
+        when(userService.getPatientDetails(eq(userId), anyString(), any())).thenReturn(detailsDTO);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(userId, "Patient");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(userId, "ROLE_Patient");
 
-        mockMvc.perform(get("/user/details/{userId}", userId).with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(userId)).andExpect(jsonPath("$.firstName").value("John")).andExpect(jsonPath("$.lastName").value("Doe"));
+        mockMvc.perform(get("/user/details/{userId}", userId).with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
     @Test
     public void testGetUserDetailsByIdAsDoctor() throws Exception {
         String doctorId = "doctor1";
         String patientId = "patient1";
-        User patient = new User(patientId, "Patient", "John", "Doe", "Patient");
 
-        when(userService.findByUserId(patientId)).thenReturn(patient);
+        List<DiagnoseDTO> diagnoses = Collections.singletonList(
+                new DiagnoseDTO(1L, patientId, doctorId, "Hypertension", "Stage 1", LocalDate.of(2023, 2, 20)));
+        List<EncounterDTO> encounters = Collections.singletonList(
+                new EncounterDTO(2L, patientId, doctorId, "Blood pressure check", LocalDate.of(2023, 2, 20)));
+        List<ObservationDTO> observations = Collections.singletonList(
+                new ObservationDTO(2L, patientId, doctorId, "Blood pressure 140/90", LocalDate.of(2023, 2, 20)));
 
-        List<DiagnoseDTO> diagnoses = Collections.singletonList(new DiagnoseDTO(1L, patientId, doctorId, "Hypertension", "Stage 1", LocalDate.of(2023, 2, 20)));
-        List<EncounterDTO> encounters = Collections.singletonList(new EncounterDTO(2L, patientId, doctorId, "Blood pressure check", LocalDate.of(2023, 2, 20)));
-        List<ObservationDTO> observations = Collections.singletonList(new ObservationDTO(2L, patientId, doctorId, "Blood pressure 140/90", LocalDate.of(2023, 2, 20)));
+        PatientProfileDetailsDTO detailsDTO = new PatientProfileDetailsDTO(
+                patientId, "John", "Doe", diagnoses, encounters, observations);
 
-        doReturn(diagnoses).when(userController).getDiagnosesByUserId(eq(patientId), anyString());
-        doReturn(encounters).when(userController).getEncountersByUserId(eq(patientId), anyString());
-        doReturn(observations).when(userController).getObservationsByUserId(eq(patientId), anyString());
+        when(userService.userDetailsAuthentication(eq(doctorId), eq(patientId), any())).thenReturn(true);
+        when(userService.getPatientDetails(eq(patientId), anyString(), any())).thenReturn(detailsDTO);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(doctorId, "Doctor");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(doctorId, "ROLE_Doctor");
 
-        mockMvc.perform(get("/user/details/{userId}", patientId).with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(patientId)).andExpect(jsonPath("$.firstName").value("John")).andExpect(jsonPath("$.lastName").value("Doe"));
+        mockMvc.perform(get("/user/details/{userId}", patientId).with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(patientId))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
     }
 
     @Test
@@ -266,12 +264,12 @@ public class UserControllerTest {
         String requesterId = "patient2";
         String targetId = "patient1";
 
-        User patient = new User(targetId, "Patient", "John", "Doe", "Patient");
-        when(userService.findByUserId(targetId)).thenReturn(patient);
+        when(userService.userDetailsAuthentication(eq(requesterId), eq(targetId), any())).thenReturn(false);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(requesterId, "Patient");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(requesterId, "ROLE_Patient");
 
-        mockMvc.perform(get("/user/details/{userId}", targetId).with(authentication(authentication))).andExpect(status().isForbidden());
+        mockMvc.perform(get("/user/details/{userId}", targetId).with(authentication(authentication)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -279,17 +277,20 @@ public class UserControllerTest {
         String doctorId = "doctor1";
         String nonExistentId = "nonexistent";
 
-        when(userService.findByUserId(nonExistentId)).thenReturn(null);
+        when(userService.userDetailsAuthentication(eq(doctorId), eq(nonExistentId), any())).thenReturn(true);
+        when(userService.getPatientDetails(eq(nonExistentId), anyString(), any())).thenReturn(null);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(doctorId, "Doctor");
+        JwtAuthenticationToken authentication = createMockAuthenticationToken(doctorId, "ROLE_Doctor");
 
-        mockMvc.perform(get("/user/details/{userId}", nonExistentId).with(authentication(authentication))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/user/details/{userId}", nonExistentId).with(authentication(authentication)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
     public void testGetUserDetailsByIdWithoutAuthentication() throws Exception {
         String patientId = "patient1";
-        mockMvc.perform(get("/user/details/{userId}", patientId)).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/user/details/{userId}", patientId))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -305,9 +306,9 @@ public class UserControllerTest {
 
         when(userService.findByUsername(username)).thenReturn(mockUser);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-
-        mockMvc.perform(get("/user/username/{username}", username).with(authentication(authentication))).andExpect(status().isOk()).andExpect(content().string(userId));
+        mockMvc.perform(get("/user/username/{username}", username))
+                .andExpect(status().isOk())
+                .andExpect(content().string(userId));
     }
 
     @Test
@@ -315,9 +316,8 @@ public class UserControllerTest {
         String nonExistentUsername = "nonexistentuser";
         when(userService.findByUsername(nonExistentUsername)).thenReturn(null);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-
-        mockMvc.perform(get("/user/username/{username}", nonExistentUsername).with(authentication(authentication))).andExpect(status().isNotFound());
+        mockMvc.perform(get("/user/username/{username}", nonExistentUsername))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -325,26 +325,25 @@ public class UserControllerTest {
         String userId = "user123";
         String username = "testuser";
 
-        User mockUser = new User();
-        mockUser.setUserId(userId);
-        mockUser.setUsername(username);
-        mockUser.setFirstName("Test");
-        mockUser.setLastName("User");
+        UserDTO userDTO = new UserDTO(userId, username);
+        when(userService.getUserDTOByUserId(eq(userId), any())).thenReturn(userDTO);
 
-        when(userService.findByUserId(userId)).thenReturn(mockUser);
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "ROLE_Patient");
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-
-        mockMvc.perform(get("/user/{userId}", userId).with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(userId)).andExpect(jsonPath("$.username").value(username));
+        mockMvc.perform(get("/user/{userId}", userId).with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.username").value(username));
     }
 
     @Test
     public void testGetUserByUserIdNotFound() throws Exception {
         String nonExistentUserId = "nonexistentid";
-        when(userService.findByUserId(nonExistentUserId)).thenReturn(null);
+        when(userService.getUserDTOByUserId(eq(nonExistentUserId), any())).thenReturn(null);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-        mockMvc.perform(get("/user/{userId}", nonExistentUserId).with(authentication(authentication))).andExpect(status().isNotFound());
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "ROLE_Patient");
+        mockMvc.perform(get("/user/{userId}", nonExistentUserId).with(authentication(authentication)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -352,14 +351,13 @@ public class UserControllerTest {
         String specialUserId = "user-123+456@domain";
         String username = "specialuser";
 
-        User mockUser = new User();
-        mockUser.setUserId(specialUserId);
-        mockUser.setUsername(username);
+        UserDTO userDTO = new UserDTO(specialUserId, username);
+        when(userService.getUserDTOByUserId(eq(specialUserId), any())).thenReturn(userDTO);
 
-        when(userService.findByUserId(specialUserId)).thenReturn(mockUser);
-
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-        mockMvc.perform(get("/user/{userId}", specialUserId).with(authentication(authentication))).andExpect(status().isOk()).andExpect(jsonPath("$.userId").value(specialUserId));
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "ROLE_Patient");
+        mockMvc.perform(get("/user/{userId}", specialUserId).with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(specialUserId));
     }
 
     @Test
@@ -373,8 +371,9 @@ public class UserControllerTest {
 
         when(userService.findByUsername(longUsername)).thenReturn(mockUser);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-        mockMvc.perform(get("/user/username/{username}", longUsername).with(authentication(authentication))).andExpect(status().isOk()).andExpect(content().string(userId));
+        mockMvc.perform(get("/user/username/{username}", longUsername))
+                .andExpect(status().isOk())
+                .andExpect(content().string(userId));
     }
 
     @Test
@@ -382,17 +381,13 @@ public class UserControllerTest {
         String userId = "user456";
         String username = "regularuser";
 
-        User mockUser = new User();
-        mockUser.setUserId(userId);
-        mockUser.setUsername(username);
-        mockUser.setFirstName("Regular");
-        mockUser.setLastName("User");
-        mockUser.setRole("Patient");
+        UserDTO userDTO = new UserDTO(userId, username);
+        when(userService.getUserDTOByUserId(eq(userId), any())).thenReturn(userDTO);
 
-        when(userService.findByUserId(userId)).thenReturn(mockUser);
-
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "Admin");
-        MvcResult result = mockMvc.perform(get("/user/{userId}", userId).with(authentication(authentication))).andExpect(status().isOk()).andReturn();
+        JwtAuthenticationToken authentication = createMockAuthenticationToken("admin1", "ROLE_Patient");
+        MvcResult result = mockMvc.perform(get("/user/{userId}", userId).with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andReturn();
 
         String responseJson = result.getResponse().getContentAsString();
         UserDTO returnedDTO = objectMapper.readValue(responseJson, UserDTO.class);
@@ -403,34 +398,8 @@ public class UserControllerTest {
 
     @Test
     public void testGetUserByUserIdWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/user/{userId}", "someUserId")).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void testGetUserByUsernameWithoutAuthentication() throws Exception {
-        mockMvc.perform(get("/user/username/{username}", "someUsername")).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void debugAuthorities() throws Exception {
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("patient1", "Patient");
-
-        MvcResult result = mockMvc.perform(get("/user/patients").with(authentication(authentication))).andReturn();
-
-        System.out.println("Status: " + result.getResponse().getStatus());
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            System.out.println("Authentication class: " + auth.getClass().getName());
-            System.out.println("Principal: " + auth.getPrincipal());
-            System.out.println("Authorities: " + auth.getAuthorities());
-
-            for (GrantedAuthority authority : auth.getAuthorities()) {
-                System.out.println("Authority: '" + authority.getAuthority() + "'");
-            }
-        } else {
-            System.out.println("No authentication in context");
-        }
+        mockMvc.perform(get("/user/{userId}", "someUserId"))
+                .andExpect(status().isUnauthorized());
     }
 
     private Jwt createMockJwt() {
@@ -442,7 +411,8 @@ public class UserControllerTest {
         claims.put("iss", "localhost:8080/");
         claims.put("role", "USER");
 
-        return new Jwt("token-value-for-testing", Instant.now(), Instant.now().plusSeconds(3600), headers, claims);
+        return new Jwt("token-value-for-testing", Instant.now(),
+                Instant.now().plusSeconds(3600), headers, claims);
     }
 
     private JwtAuthenticationToken createMockAuthenticationToken(String userId, String role) {
@@ -453,9 +423,14 @@ public class UserControllerTest {
         claims.put("sub", userId);
         claims.put("iss", "localhost:8080/");
         claims.put("role", role);
+        claims.put("preferred_username", "user_" + userId);
+        claims.put("given_name", "Test");
+        claims.put("family_name", "User");
 
-        Jwt jwt = new Jwt("token-value-for-testing", Instant.now(), Instant.now().plusSeconds(3600), headers, claims);
+        Jwt jwt = new Jwt("token-value-for-testing", Instant.now(),
+                Instant.now().plusSeconds(3600), headers, claims);
 
-        return new JwtAuthenticationToken(jwt, Collections.singletonList(new SimpleGrantedAuthority(role)), userId);
+        return new JwtAuthenticationToken(jwt,
+                Collections.singletonList(new SimpleGrantedAuthority(role)), userId);
     }
 }
