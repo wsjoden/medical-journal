@@ -44,7 +44,7 @@ public class EncounterController {
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<List<EncounterDTO>> findEncounterByPatientId(@PathVariable String id) {
-        List<Encounter> encounters = encounterService.findEncountersByPatientUserId(id);
+        List<EncounterDTO> encounters = encounterService.getPatientEncounters(id);
         if (encounters == null || encounters.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
