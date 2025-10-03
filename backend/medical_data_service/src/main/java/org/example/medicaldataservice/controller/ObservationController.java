@@ -22,57 +22,32 @@ public class ObservationController {
 
     @Autowired
     private final ObservationService observationService;
-    private final WebClient.Builder webClientBuilder;
 
-    @Value("${user.service.url}")
-    private String userServiceURL;
-
-    public ObservationController(ObservationService observationService, WebClient.Builder webClientBuilder) {
+    public ObservationController(ObservationService observationService) {
         this.observationService = observationService;
-        this.webClientBuilder = webClientBuilder;
     }
 
     @PostMapping("/new/patient/{id}")
-    public ResponseEntity<Response> registerObservation(Authentication authentication,
+    public ResponseEntity<Void> registerObservation(Authentication authentication,
             @RequestBody Observation observation,
             @PathVariable String id) {
+
         String staffUserId = authentication.getName();
         if (staffUserId == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        observation.setPatientUserId(id);
 
-        observation.setStaffUserId(staffUserId);
-        observationService.registerObservation(observation);
+        observationService.createObservation(id, staffUserId, observation);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<List<ObservationDTO>> findObservationByPatientId(@PathVariable String id) {
-        List<Observation> observations = observationService.findObservationsByPatientUserId(id);
-        if (observations == null || observations.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            List<ObservationDTO> observationsDTO = observations.stream()
-                    .map(observation -> new ObservationDTO(
-                            observation.getId(),
-                            observation.getPatientUserId(),
-                            observation.getStaffUserId(),
-                            observation.getObservation(),
-                            observation.getObservationDate()))
-                    .toList();
-            return ResponseEntity.ok(observationsDTO);
+        List<ObservationDTO> observations = observationService.getPatientObservations(id);
+        if (observations.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+        return ResponseEntity.ok(observations);
     }
 
-    private StaffDTO getStaff(Long userId) {
-        // String staffServiceURL = "http://user-service:8082/staff/" + userId;
-        String url = userServiceURL + "/staff/" + userId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(StaffDTO.class)
-                .block();
-    }
 }

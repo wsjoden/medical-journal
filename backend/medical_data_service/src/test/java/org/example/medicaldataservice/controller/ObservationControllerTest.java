@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.medicaldataservice.dto.ObservationDTO;
 import org.example.medicaldataservice.model.Observation;
 import org.example.medicaldataservice.service.ObservationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -32,142 +32,140 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class ObservationControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @MockBean
-    private ObservationService observationService;
+        @MockBean
+        private ObservationService observationService;
 
-    @MockBean
-    private WebClient.Builder webClientBuilder;
+        @MockBean
+        private WebClient.Builder webClientBuilder;
 
-    @SpyBean
-    private ObservationController observationController;
+        @BeforeEach
+        public void setup() {
+                reset(observationService);
+        }
 
-    @Test
-    public void testRegisterObservation() throws Exception {
-        String patientId = "patient1";
-        String staffId = "doctor1";
+        @Test
+        public void testRegisterObservation() throws Exception {
+                String patientId = "patient1";
+                String staffId = "doctor1";
 
-        Observation observation = new Observation();
-        observation.setId(1L);
-        observation.setObservation("mock observation");
-        observation.setObservationDate(LocalDate.now());
+                Observation observation = new Observation();
+                observation.setObservation("mock observation");
+                observation.setObservationDate(LocalDate.now());
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(staffId, "Doctor");
+                Observation createdObservation = new Observation();
+                createdObservation.setId(1L);
+                createdObservation.setPatientUserId(patientId);
+                createdObservation.setStaffUserId(staffId);
+                createdObservation.setObservation("mock observation");
+                createdObservation.setObservationDate(LocalDate.now());
 
-        mockMvc.perform(post("/observations/new/patient/{id}", patientId)
-                        .with(authentication(authentication))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(observation)))
-                .andExpect(status().isOk());
+                when(observationService.createObservation(eq(patientId), eq(staffId), any(Observation.class)))
+                                .thenReturn(createdObservation);
 
-        verify(observationService).registerObservation(argThat(o ->
-                o.getPatientUserId().equals(patientId) &&
-                        o.getStaffUserId().equals(staffId) &&
-                        o.getObservation().equals("mock observation") &&
-                        o.getObservationDate() != null
-        ));
-    }
+                JwtAuthenticationToken authentication = createMockAuthenticationToken(staffId, "ROLE_Doctor");
 
-    @Test
-    public void testRegisterObservationWithoutAuthentication() throws Exception {
-        String patientId = "patient1";
+                mockMvc.perform(post("/observations/new/patient/{id}", patientId)
+                                .with(authentication(authentication))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(observation)))
+                                .andExpect(status().isOk());
 
-        Observation observation = new Observation();
-        observation.setId(1L);
-        observation.setObservation("mock observation");
-        observation.setObservationDate(LocalDate.now());
+                verify(observationService).createObservation(
+                                eq(patientId),
+                                eq(staffId),
+                                argThat(o -> "mock observation".equals(o.getObservation())));
+        }
 
-        mockMvc.perform(post("/observations/new/patient/{id}", patientId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(observation)))
-                .andExpect(status().isUnauthorized());
-    }
+        @Test
+        public void testRegisterObservationWithoutAuthentication() throws Exception {
+                String patientId = "patient1";
 
-    @Test
-    public void testFindObservationByPatientId() throws Exception {
-        String patientId = "patient1";
-        String staffId = "doctor1";
+                Observation observation = new Observation();
+                observation.setObservation("mock observation");
+                observation.setObservationDate(LocalDate.now());
 
-        Observation observation1 = new Observation();
-        observation1.setId(1L);
-        observation1.setPatientUserId(patientId);
-        observation1.setStaffUserId(staffId);
-        observation1.setObservation("mock observation 1");
-        observation1.setObservationDate(LocalDate.of(2023, 1, 15));
+                mockMvc.perform(post("/observations/new/patient/{id}", patientId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(observation)))
+                                .andExpect(status().isUnauthorized());
 
-        Observation observation2 = new Observation();
-        observation2.setId(2L);
-        observation2.setPatientUserId(patientId);
-        observation2.setStaffUserId(staffId);
-        observation2.setObservation("mock observation 2");
-        observation2.setObservationDate(LocalDate.of(2023, 2, 20));
+                verify(observationService, never()).createObservation(anyString(), anyString(), any(Observation.class));
+        }
 
-        List<Observation> observations = Arrays.asList(observation1, observation2);
+        @Test
+        public void testFindObservationByPatientId() throws Exception {
+                String patientId = "patient1";
+                String staffId = "doctor1";
 
-        when(observationService.findObservationsByPatientUserId(patientId)).thenReturn(observations);
+                ObservationDTO observationDTO1 = new ObservationDTO(
+                                1L,
+                                patientId,
+                                staffId,
+                                "mock observation 1",
+                                LocalDate.of(2023, 1, 15));
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(staffId, "Doctor");
+                ObservationDTO observationDTO2 = new ObservationDTO(
+                                2L,
+                                patientId,
+                                staffId,
+                                "mock observation 2",
+                                LocalDate.of(2023, 2, 20));
 
-        mockMvc.perform(get("/observations/patient/{id}", patientId)
-                        .with(authentication(authentication)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].patientUserId").value(patientId))
-                .andExpect(jsonPath("$[0].staffUserId").value(staffId))
-                .andExpect(jsonPath("$[0].observation").value("mock observation 1"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].patientUserId").value(patientId))
-                .andExpect(jsonPath("$[1].staffUserId").value(staffId))
-                .andExpect(jsonPath("$[1].observation").value("mock observation 2"));
-    }
+                List<ObservationDTO> observationsDTO = Arrays.asList(observationDTO1, observationDTO2);
 
-    @Test
-    public void testFindObservationByPatientIdNotFound() throws Exception {
-        String patientId = "nonexistent";
+                when(observationService.getPatientObservations(patientId)).thenReturn(observationsDTO);
 
-        when(observationService.findObservationsByPatientUserId(patientId)).thenReturn(Collections.emptyList());
+                mockMvc.perform(get("/observations/patient/{id}", patientId))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(1))
+                                .andExpect(jsonPath("$[0].patientUserId").value(patientId))
+                                .andExpect(jsonPath("$[0].staffUserId").value(staffId))
+                                .andExpect(jsonPath("$[0].observation").value("mock observation 1"))
+                                .andExpect(jsonPath("$[1].id").value(2))
+                                .andExpect(jsonPath("$[1].patientUserId").value(patientId))
+                                .andExpect(jsonPath("$[1].staffUserId").value(staffId))
+                                .andExpect(jsonPath("$[1].observation").value("mock observation 2"));
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
+                verify(observationService).getPatientObservations(patientId);
+        }
 
-        mockMvc.perform(get("/observations/patient/{id}", patientId)
-                        .with(authentication(authentication)))
-                .andExpect(status().isNotFound());
-    }
+        @Test
+        public void testFindObservationByPatientIdNotFound() throws Exception {
+                String patientId = "nonexistent";
 
-    @Test
-    public void testFindObservationByPatientIdWithoutAuthentication() throws Exception {
-        String patientId = "patient1";
+                when(observationService.getPatientObservations(patientId)).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/observations/patient/{id}", patientId))
-                .andExpect(status().isUnauthorized());
-    }
+                mockMvc.perform(get("/observations/patient/{id}", patientId))
+                                .andExpect(status().isNotFound());
 
-    private JwtAuthenticationToken createMockAuthenticationToken(String userId, String role) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("alg", "RS256");
+                verify(observationService).getPatientObservations(patientId);
+        }
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userId);
-        claims.put("iss", "localhost:8080/");
-        claims.put("role", role);
+        private JwtAuthenticationToken createMockAuthenticationToken(String userId, String role) {
+                Map<String, Object> headers = new HashMap<>();
+                headers.put("alg", "RS256");
 
-        Jwt jwt = new Jwt(
-                "token-value-for-testing",
-                Instant.now(),
-                Instant.now().plusSeconds(3600),
-                headers,
-                claims
-        );
+                Map<String, Object> claims = new HashMap<>();
+                claims.put("sub", userId);
+                claims.put("iss", "localhost:8080/");
+                claims.put("role", role);
 
-        return new JwtAuthenticationToken(
-                jwt,
-                Collections.singletonList(new SimpleGrantedAuthority(role)),
-                userId
-        );
-    }
+                Jwt jwt = new Jwt(
+                                "token-value-for-testing",
+                                Instant.now(),
+                                Instant.now().plusSeconds(3600),
+                                headers,
+                                claims);
+
+                return new JwtAuthenticationToken(
+                                jwt,
+                                Collections.singletonList(new SimpleGrantedAuthority(role)),
+                                userId);
+        }
 }

@@ -22,20 +22,14 @@ import java.util.List;
 public class DiagnoseController {
 
     @Autowired
-    private final WebClient.Builder webClientBuilder;
     private final DiagnoseService diagnoseService;
 
-    @Value("${user.service.url}")
-    private String userServiceURL;
-
-    public DiagnoseController(WebClient.Builder webClientBuilder, DiagnoseService diagnoseService) {
-        this.webClientBuilder = webClientBuilder;
+    public DiagnoseController(DiagnoseService diagnoseService) {
         this.diagnoseService = diagnoseService;
     }
 
     @GetMapping("/test")
     public String test() {
-        System.out.println("Medical service is up and running!");
         return "Medical service is up and running!";
     }
 
@@ -46,44 +40,20 @@ public class DiagnoseController {
         String staffUserId = authentication.getName();
 
         if (staffUserId == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        diagnose.setPatientUserId(id);
-        diagnose.setDiagnosisDate(LocalDate.now());
-
-        diagnose.setStaffUserId(staffUserId);
-        diagnoseService.registerDiagnose(diagnose);
+        diagnoseService.createDiagnose(id, staffUserId, diagnose);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<List<DiagnoseDTO>> getDiagnosesByPatientId(@PathVariable String id) {
-        List<Diagnose> diagnoses = diagnoseService.findDiagnosesByPatientUserId(id);
-        if (diagnoses == null || diagnoses.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            List<DiagnoseDTO> diagnosesDTO = diagnoses.stream()
-                    .map(diagnose -> new DiagnoseDTO(
-                            diagnose.getId(),
-                            diagnose.getPatientUserId(),
-                            diagnose.getStaffUserId(),
-                            diagnose.getDiagnose(),
-                            diagnose.getDetails(),
-                            diagnose.getDiagnosisDate()))
-                    .toList();
-            return ResponseEntity.ok(diagnosesDTO);
+        List<DiagnoseDTO> diagnoses = diagnoseService.getPatientDiagnoses(id);
+        if (diagnoses.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-    }
 
-    private StaffDTO getStaff(Long userId) {
-        // String staffServiceURL = "http://user-service:8082/staff/" + userId;
-        String url = userServiceURL + "/staff/" + userId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(StaffDTO.class)
-                .block();
-    }
+        return ResponseEntity.ok(diagnoses);
 
+    }
 }

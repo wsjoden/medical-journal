@@ -34,155 +34,154 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class DiagnoseControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @MockBean
-    private DiagnoseService diagnoseService;
+        @MockBean
+        private DiagnoseService diagnoseService;
 
-    @MockBean
-    private WebClient.Builder webClientBuilder;
+        @MockBean
+        private WebClient.Builder webClientBuilder;
 
-    @SpyBean
-    private DiagnoseController diagnoseController;
+        @BeforeEach
+        public void setup() {
+                reset(diagnoseService);
+        }
 
-    @Test
-    public void testTest() throws Exception {
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
+        @Test
+        public void testTest() throws Exception {
+                JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
 
-        mockMvc.perform(get("/diagnoses/test")
-                        .with(authentication(authentication)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Medical service is up and running!"));
-    }
+                mockMvc.perform(get("/diagnoses/test")
+                                .with(authentication(authentication)))
+                                .andExpect(status().isOk())
+                                .andExpect(content().string("Medical service is up and running!"));
+        }
 
-    @Test
-    public void testRegisterDiagnose() throws Exception {
-        String patientId = "patient1";
-        String staffId = "doctor1";
+        @Test
+        public void testRegisterDiagnose() throws Exception {
+                String patientId = "patient1";
+                String staffId = "doctor1";
 
-        Diagnose diagnose = new Diagnose();
-        diagnose.setDiagnose("mock diagnose");
-        diagnose.setDetails("mock details");
+                Diagnose diagnose = new Diagnose();
+                diagnose.setDiagnose("mock diagnose");
+                diagnose.setDetails("mock details");
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(staffId, "Doctor");
+                // Mock the authentiation
+                JwtAuthenticationToken authentication = createMockAuthenticationToken(staffId, "Doctor");
 
-        mockMvc.perform(post("/diagnoses/new/patient/{id}", patientId)
-                        .with(authentication(authentication))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(diagnose)))
-                .andExpect(status().isOk());
+                mockMvc.perform(post("/diagnoses/new/patient/{id}", patientId)
+                                .with(authentication(authentication))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(diagnose)))
+                                .andExpect(status().isOk());
 
-        verify(diagnoseService).registerDiagnose(argThat(d ->
-                d.getPatientUserId().equals(patientId) &&
-                        d.getStaffUserId().equals(staffId) &&
-                        d.getDiagnose().equals("mock diagnose") &&
-                        d.getDetails().equals("mock details") &&
-                        d.getDiagnosisDate() != null
-        ));
-    }
+                verify(diagnoseService).createDiagnose(
+                                eq(patientId),
+                                eq(staffId),
+                                argThat(d -> "mock diagnose".equals(d.getDiagnose()) &&
+                                                "mock details".equals(d.getDetails())));
+        }
 
-    @Test
-    public void testRegisterDiagnoseWithoutAuthentication() throws Exception {
-        String patientId = "patient1";
+        @Test
+        public void testRegisterDiagnoseWithoutAuthentication() throws Exception {
+                String patientId = "patient1";
 
-        Diagnose diagnose = new Diagnose();
-        diagnose.setDiagnose("mock diagnose");
-        diagnose.setDetails("mock details");
+                Diagnose diagnose = new Diagnose();
+                diagnose.setDiagnose("mock diagnose");
+                diagnose.setDetails("mock details");
 
-        mockMvc.perform(post("/diagnoses/new/patient/{id}", patientId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(diagnose)))
-                .andExpect(status().isUnauthorized());
-    }
+                mockMvc.perform(post("/diagnoses/new/patient/{id}", patientId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(diagnose)))
+                                .andExpect(status().isUnauthorized());
 
-    @Test
-    public void testGetDiagnosesByPatientId() throws Exception {
-        String patientId = "patient1";
-        String staffId = "doctor1";
+                verify(diagnoseService, never()).createDiagnose(anyString(), anyString(), any(Diagnose.class));
+        }
 
-        Diagnose diagnose1 = new Diagnose();
-        diagnose1.setId(1L);
-        diagnose1.setPatientUserId(patientId);
-        diagnose1.setStaffUserId(staffId);
-        diagnose1.setDiagnose("mock diagnose 2");
-        diagnose1.setDetails("mock details 1");
-        diagnose1.setDiagnosisDate(LocalDate.of(2023, 1, 15));
+        @Test
+        public void testGetDiagnosesByPatientId() throws Exception {
+                String patientId = "patient1";
+                String staffId = "doctor1";
 
-        Diagnose diagnose2 = new Diagnose();
-        diagnose2.setId(2L);
-        diagnose2.setPatientUserId(patientId);
-        diagnose2.setStaffUserId(staffId);
-        diagnose2.setDiagnose("mock diagnose 2");
-        diagnose2.setDetails("mock details 2"); 
-        diagnose2.setDiagnosisDate(LocalDate.of(2023, 2, 20));
+                DiagnoseDTO diagnoseDTO1 = new DiagnoseDTO(
+                                1L,
+                                patientId,
+                                staffId,
+                                "mock diagnose 1",
+                                "mock details 1",
+                                LocalDate.of(2023, 1, 15));
 
-        List<Diagnose> diagnoses = Arrays.asList(diagnose1, diagnose2);
+                DiagnoseDTO diagnoseDTO2 = new DiagnoseDTO(
+                                2L,
+                                patientId,
+                                staffId,
+                                "mock diagnose 2",
+                                "mock details 2",
+                                LocalDate.of(2023, 2, 20));
 
-        when(diagnoseService.findDiagnosesByPatientUserId(patientId)).thenReturn(diagnoses);
+                List<DiagnoseDTO> diagnosesDTO = Arrays.asList(diagnoseDTO1, diagnoseDTO2);
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken(staffId, "Doctor");
+                when(diagnoseService.getPatientDiagnoses(patientId)).thenReturn(diagnosesDTO);
 
-        mockMvc.perform(get("/diagnoses/patient/{id}", patientId)
-                        .with(authentication(authentication)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].patientUserId").value(patientId))
-                .andExpect(jsonPath("$[0].staffUserId").value(staffId))
-                .andExpect(jsonPath("$[0].diagnose").value("mock diagnose 1"))
-                .andExpect(jsonPath("$[0].details").value("mock details 1"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].patientUserId").value(patientId))
-                .andExpect(jsonPath("$[1].staffUserId").value(staffId))
-                .andExpect(jsonPath("$[1].diagnose").value("mock diagnose 2"))
-                .andExpect(jsonPath("$[1].details").value("mock details 2"));
-    }
+                mockMvc.perform(get("/diagnoses/patient/{id}", patientId))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$[0].id").value(1))
+                                .andExpect(jsonPath("$[0].patientUserId").value(patientId))
+                                .andExpect(jsonPath("$[0].staffUserId").value(staffId))
+                                .andExpect(jsonPath("$[0].diagnose").value("mock diagnose 1"))
+                                .andExpect(jsonPath("$[0].details").value("mock details 1"))
+                                .andExpect(jsonPath("$[1].id").value(2))
+                                .andExpect(jsonPath("$[1].patientUserId").value(patientId))
+                                .andExpect(jsonPath("$[1].staffUserId").value(staffId))
+                                .andExpect(jsonPath("$[1].diagnose").value("mock diagnose 2"))
+                                .andExpect(jsonPath("$[1].details").value("mock details 2"));
 
-    @Test
-    public void testGetDiagnosesByPatientIdNotFound() throws Exception {
-        String patientId = "nonexistent";
+                verify(diagnoseService).getPatientDiagnoses(patientId);
+        }
 
-        when(diagnoseService.findDiagnosesByPatientUserId(patientId)).thenReturn(Collections.emptyList());
+        @Test
+        public void testGetDiagnosesByPatientIdNotFound() throws Exception {
+                String patientId = "nonexistent";
 
-        JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
+                when(diagnoseService.getPatientDiagnoses(patientId)).thenReturn(Collections.emptyList());
 
-        mockMvc.perform(get("/diagnoses/patient/{id}", patientId)
-                        .with(authentication(authentication)))
-                .andExpect(status().isNotFound());
-    }
+                // Mock the authentiation
+                JwtAuthenticationToken authentication = createMockAuthenticationToken("doctor1", "Doctor");
 
-    @Test
-    public void testGetDiagnosesByPatientIdWithoutAuthentication() throws Exception {
-        String patientId = "patient1";
+                mockMvc.perform(get("/diagnoses/patient/{id}", patientId)
+                                .with(authentication(authentication)))
+                                .andExpect(status().isNotFound());
+        }
 
-        mockMvc.perform(get("/diagnoses/patient/{id}", patientId))
-                .andExpect(status().isUnauthorized());
-    }
+        @Test
+        public void testGetDiagnosesByPatientIdWithoutAuthentication() throws Exception {
+                String patientId = "patient1";
 
-    private JwtAuthenticationToken createMockAuthenticationToken(String userId, String role) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("alg", "RS256");
+                mockMvc.perform(get("/diagnoses/patient/{id}", patientId))
+                                .andExpect(status().isUnauthorized());
+        }
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userId);
-        claims.put("iss", "localhost:8080/");
-        claims.put("role", role);
+        /**
+         * Creates a mock JwtAuthenticationToken with given userId and role
+         * to simulate authenticated requests in tests.
+         */
+        private JwtAuthenticationToken createMockAuthenticationToken(String userId, String role) {
+                Map<String, Object> headers = new HashMap<>();
+                headers.put("alg", "RS256");
 
-        Jwt jwt = new Jwt(
-                "token-value-for-testing",
-                Instant.now(),
-                Instant.now().plusSeconds(3600),
-                headers,
-                claims
-        );
+                Map<String, Object> claims = new HashMap<>();
+                claims.put("sub", userId);
+                claims.put("iss", "localhost:8080/");
+                claims.put("role", role);
 
-        return new JwtAuthenticationToken(
-                jwt,
-                Collections.singletonList(new SimpleGrantedAuthority(role)),
-                userId
-        );
-    }
+                Jwt jwt = new Jwt("token-value-for-testing", Instant.now(),
+                                Instant.now().plusSeconds(3600), headers, claims);
+
+                return new JwtAuthenticationToken(jwt,
+                                Collections.singletonList(new SimpleGrantedAuthority(role)), userId);
+        }
 }

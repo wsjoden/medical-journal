@@ -23,61 +23,31 @@ import java.util.stream.Collectors;
 public class EncounterController {
 
     @Autowired
-    private final WebClient.Builder webClientBuilder;
     private final EncounterService encounterService;
 
-    @Value("${user.service.url}")
-    private String userServiceURL;
-
-    public EncounterController(EncounterService encounterService, WebClient.Builder webClientBuilder) {
+    public EncounterController(EncounterService encounterService) {
         this.encounterService = encounterService;
-        this.webClientBuilder = webClientBuilder;
     }
 
-    // Create encounter
     @PostMapping("/new/patient/{id}")
     public ResponseEntity<Encounter> registerEncounter(Authentication authentication,
             @RequestBody Encounter encounter,
             @PathVariable String id) {
+
         String staffUserId = authentication.getName();
         if (staffUserId == null) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        encounter.setPatientUserId(id);
-        System.out.println("staffId: " + staffUserId);
-
-        encounter.setStaffUserId(staffUserId);
-        System.out.println("encounter: " + encounter.toString());
-        encounterService.registerEncounter(encounter);
-        return ResponseEntity.ok(encounter);
+        encounterService.createEncounter(id, staffUserId, encounter);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/patient/{id}")
     public ResponseEntity<List<EncounterDTO>> findEncounterByPatientId(@PathVariable String id) {
         List<Encounter> encounters = encounterService.findEncountersByPatientUserId(id);
         if (encounters == null || encounters.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else {
-            List<EncounterDTO> encountersDTO = encounters.stream()
-                    .map(encounter -> new EncounterDTO(
-                            encounter.getId(),
-                            encounter.getPatientUserId(),
-                            encounter.getStaffUserId(),
-                            encounter.getNotes(),
-                            encounter.getEncounterDate()))
-                    .toList();
-            return ResponseEntity.ok(encountersDTO);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-    }
-
-    private StaffDTO getStaff(Long userId) {
-        // String staffServiceURL = "http://user-service:8082/staff/" + userId;
-        String url = userServiceURL + "/staff/" + userId;
-        return this.webClientBuilder.build()
-                .get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(StaffDTO.class)
-                .block();
+        return ResponseEntity.ok(encounters);
     }
 }
