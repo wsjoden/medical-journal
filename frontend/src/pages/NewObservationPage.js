@@ -1,3 +1,10 @@
+/**
+ * New Observation Page
+ * 
+ * Form page for doctors and staff to create new observation for patients.
+ * 
+ */
+
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/NewObservationPage.css';
@@ -12,16 +19,20 @@ function NewObservationPage() {
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        const observationData = { observationDate: date, observation, patientId: id };
+        e.preventDefault(); // Prevent page reload
+        const observationData = {
+            observationDate: date,
+            observation,
+            patientId: id      // Get id from URL
+        };
         console.log('Observation data to send:', observationData);
         apiRequest('POST', `/observations/new/patient/${id}`, observationData)
             .then(response => {
                 console.log('Observation created:', response.data);
                 if (role === 'doctor') {
-                    navigate(`/patient/${id}`);
+                    navigate(`/patient/${id}`); // Doctor go to patient profile
                 } else {
-                    navigate(`/patient`);
+                    navigate(`/patient`);   // Other staff go to patient list
                 };
             })
             .catch(error => {

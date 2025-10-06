@@ -1,3 +1,11 @@
+/**
+ * Patient Search Bar Component
+ * 
+ * Search interface for finding patients, medical records, and staff members.
+ * Supports both basic quick search and advanced multi-field filtering.
+ * 
+ */
+
 import React, { useState } from 'react';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import '../styles/PatientSearchBar.css';
@@ -5,7 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function PatientSearchBar({ onSearch, onAdvancedSearch }) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [advancedSearch, setAdvancedSearch] = useState(false);
+    const [advancedSearch, setAdvancedSearch] = useState(false); // Toggle for advanced search panel
     const [filters, setFilters] = useState({
         // Patient search fields
         firstName: '',
@@ -22,6 +30,7 @@ function PatientSearchBar({ onSearch, onAdvancedSearch }) {
 
     });
 
+    // Updates filter state when user types in advanced search fields
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFilters((prevFilters) => ({
@@ -32,7 +41,6 @@ function PatientSearchBar({ onSearch, onAdvancedSearch }) {
 
     const handleSearch = () => {
         if (advancedSearch) {
-            console.log('Advanced search filters:', filters);
             onAdvancedSearch(filters); // Call the advanced search function with filters
         } else {
             onSearch(searchTerm); // Call the basic search function with searchTerm

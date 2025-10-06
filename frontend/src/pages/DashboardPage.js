@@ -1,3 +1,10 @@
+/**
+ * Dashboard Page
+ * 
+ * Provides quick access to key sections of the application for doctors and other staff
+ * 
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from "../services/AuthContext";
@@ -7,6 +14,10 @@ function DashboardPage() {
     const { role } = useAuth();
     const [loading, setLoading] = useState(true);
 
+    /**
+     * Wait for role to be loaded from AuthContext 
+     * to avoid "Access Denied" to load before auth is verified
+     */
     useEffect(() => {
         if (role !== null) {
             setLoading(false);

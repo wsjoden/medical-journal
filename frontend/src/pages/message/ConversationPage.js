@@ -1,12 +1,20 @@
+/**
+ * Conversation Page
+ * 
+ * Message interface for viewing and replying to a specific conversation.
+ * Displays all messages between two users in chronological order.
+ *
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import '../../styles/ConversationPage.css';
 import { apiRequest } from '../../services/RESTService';
 
 function ConversationPage() {
-    const { id } = useParams();
-    const [messages, setMessages] = useState([]);
-    const [newMessage, setNewMessage] = useState('');
+    const { id } = useParams(); // Conversation ID from URL
+    const [messages, setMessages] = useState([]);   // All messages in this conversation
+    const [newMessage, setNewMessage] = useState('');   // Text for reply message
 
     useEffect(() => {
         apiRequest('GET', `/messages/conversation/${id}/messages`, {})
@@ -19,18 +27,22 @@ function ConversationPage() {
             });
     }, [id]);
 
+    /**
+     * Sends a reply message in the conversation
+     * Updates message list with all messages after successful send
+     */
     const handleSendMessage = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent page refresh
+
         const messageData = {
             message: newMessage,
             receiverUsername: messages.length > 0 ? messages[0].receiverUsername : '', // Assuming the receiver is the same for all messages in the conversation
         };
-        console.log('Sending message data:', messageData); // Log the message data
+
         apiRequest('POST', `/messages/reply/${id}`, messageData)
             .then(response => {
-                console.log('Message sent response:', response.data); // Logging the response
                 setMessages(response.data);
-                setNewMessage('');
+                setNewMessage(''); // Clear input field
             })
             .catch(error => {
                 console.error('Error sending message:', error);

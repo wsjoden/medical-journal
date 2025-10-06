@@ -1,3 +1,14 @@
+/**
+ * Image Upload Page
+ * 
+ * Allows users to upload medical images to the image service.
+ * Handles file selection, validation, and upload progress.
+ * 
+ * Features:
+ * - File selection with validation
+ * - Named uploads (user can provide image name)
+ */
+
 import { useState } from 'react';
 import '../../styles/ImageUploadPage.css';
 import { apiRequestFile } from '../../services/RESTService';
@@ -5,12 +16,12 @@ import { apiRequestFile } from '../../services/RESTService';
 const ImageUploadPage = () => {
 
     const [name, setName] = useState(' ');
-    const [file, setFile] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [message, setMessage] = useState('');
+    const [file, setFile] = useState(null); // Object to select file 
+    const [uploading, setUploading] = useState(false); // Uploading in process
+    const [message, setMessage] = useState(''); // Success/Fail
 
-    const handleSubmit = async (e) => { //what is e?
-        e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // Prevent page refresh on form submit
 
         if (!file) {
             setMessage('Please select a file to upload');
@@ -21,6 +32,7 @@ const ImageUploadPage = () => {
         setMessage('');
 
         try {
+            // Prepare form data for uploading
             const formData = new FormData();
             formData.append("name", name);
             formData.append("file", file);
@@ -32,6 +44,7 @@ const ImageUploadPage = () => {
 
             console.log("file to be uploaded: ", file);
 
+            // Upload
             const response = await apiRequestFile('POST', '/images/upload', formData);
             const data = response.data;
             console.log('File uploaded successfully:', data);
@@ -47,7 +60,7 @@ const ImageUploadPage = () => {
             console.error('Error occurred:', error);
             setMessage(`Error: ${error.message}`);
         } finally {
-            setUploading(false);
+            setUploading(false);    // Reset loading state regardless of success/fail
         }
     };
 

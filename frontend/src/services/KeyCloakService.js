@@ -10,6 +10,9 @@ const keycloakService = {
     keycloak,
     init: (onAuthenticatedCallback) => {
         keycloak
+            /**
+             * Initilizes Keycloak
+             */
             .init({
                 onLoad: 'login-required',
                 pkceMethod: 'S256',
@@ -29,15 +32,19 @@ const keycloakService = {
                 console.error("Keycloak initialization error:", error);
             });
     },
+    /** Redirects user to Keycloak login page */
     login: () => {
         keycloak.login();
     },
+    /** Logs out user and redirects to base URL */
     logout: () => {
         keycloak.logout({
             redirectUri: process.env.REACT_APP_BASE_URL
         });
     },
+    /** Retrieves the current JWT token */
     getToken: () => keycloak.token || null,
+    /** Checks if user is currently authenticated */
     isAuthenticated: () => keycloak.authenticated || false,
 };
 

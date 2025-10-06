@@ -1,19 +1,33 @@
-import {useState, useRef, useEffect} from 'react';
-import {Canvas, PencilBrush} from 'fabric';
+/**
+ * Image Edit Page
+ * 
+ * Features:
+ * - Free drawing with pencil tool
+ * - Image filters (brightness, contrast, etc.)
+ * - Toolbox for editing controls
+ * - Canvas for displaying and editing images
+ */
+
+import { useState, useRef, useEffect } from 'react';
+import { Canvas, PencilBrush } from 'fabric';
 import '../../styles/ImageEditPage.css';
 import Toolbox from "../../components/Toolbox";
 import EditorCanvas from "../../components/EditorCanvas";
 
+/**
+    * Initialize Fabric.js canvas on component mount
+    * Sets up default drawing configuration (black pencil, 5px width)
+    */
 const ImageEditPage = () => {
     const canvasRef = useRef(null);
     const [canvas, setCanvas] = useState(null);
-    const [currentFilter , setCurrentFilter] = useState(null);
+    const [currentFilter, setCurrentFilter] = useState(null);
 
-    useEffect (() => {
-        const canvas = new Canvas (canvasRef.current, {
+    useEffect(() => {
+        const canvas = new Canvas(canvasRef.current, {
             backgroundColor: 'white'
         });
-        canvas.setDimensions({width: 1000, height: 500});
+        canvas.setDimensions({ width: 1000, height: 500 });
 
         const brush = new PencilBrush(canvas);
         brush.color = 'black';
@@ -21,6 +35,7 @@ const ImageEditPage = () => {
         canvas.freeDrawingBrush = brush;
         setCanvas(canvas);
 
+        // Cleanup
         return () => {
             canvas.dispose();
         };
@@ -29,7 +44,7 @@ const ImageEditPage = () => {
 
 
 
-    return(
+    return (
         <div className="editor">
             <Toolbox
                 canvas={canvas}

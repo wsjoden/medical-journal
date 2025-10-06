@@ -1,3 +1,12 @@
+/**
+ * Patient Page
+ * 
+ * Lists all patients for doctors and staff.
+ * 
+ * Uses SearchService for advanced searches across patients
+ * 
+ */
+
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../services/RESTService';
@@ -6,17 +15,19 @@ import '../styles/PatientPage.css';
 import { fetchSearchResults } from "../services/SearchService";
 
 function PatientPage() {
-    const [patients, setPatients] = useState([]);
-    const [filteredPatients, setFilteredPatients] = useState([]);
+    const [patients, setPatients] = useState([]);   // Patients from backend
+    const [filteredPatients, setFilteredPatients] = useState([]);   // Filtered results from search
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [dropdownVisible, setDropdownVisible] = useState(null);
+    const [dropdownVisible, setDropdownVisible] = useState(null);   // Tracks which dropdown is open=
 
+    /**
+   * Fetches all patients
+   * Initial patient list shown before any search
+   */
     useEffect(() => {
         apiRequest("GET", "/user/patients", {})
             .then((response) => {
-
-                console.log('Fetched patients:', response.data);
 
                 if (Array.isArray(response.data)) {
                     setPatients(response.data);
@@ -32,10 +43,20 @@ function PatientPage() {
             });
     }, []);
 
+
+    /**
+     * Toggle dropdown for quick actions on patient
+     * Only one dropdown can be open at a time
+     * @param {number} index - Index of patient in the list
+     */
     const toggleDropdown = (index) => {
         setDropdownVisible(dropdownVisible === index ? null : index);
     };
 
+    /**
+    * Handles selection from quick action dropdown
+    * and navigates to correct form creating page
+    */
     const handleOptionSelect = (option, id) => {
         setDropdownVisible(null);
         switch (option) {
@@ -53,6 +74,10 @@ function PatientPage() {
         }
     };
 
+    /**
+    * Handles basic search by patient name
+    * Filters locally from loaded patients
+    */
     const handleSearch = (searchTerm) => {
         const term = searchTerm.toLowerCase();
         const filtered = patients.filter(patient =>
@@ -62,6 +87,10 @@ function PatientPage() {
         setFilteredPatients(filtered);
     };
 
+    /**
+   * Handles advanced search with multiple filters
+   * Calls SearchService to query backend with complex searches
+   */
     const handleAdvancedSearch = async (filters) => {
         try {
             const searchResults = await fetchSearchResults("", filters);

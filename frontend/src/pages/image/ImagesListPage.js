@@ -1,13 +1,18 @@
+/**
+ * Fetches images from the image service and renders them
+ */
 import React, { useEffect, useState } from 'react';
 import { apiRequest, apiRequestBlob } from "../../services/RESTService";
 import { Link } from "react-router-dom";
 
-const UploadedImagesList = () => {
-    const [files, setFiles] = useState([]);
-    const [imageUrls, setImageUrls] = useState({});
-    const [loadingImages, setLoadingImages] = useState({});
 
-    // Fetch Image files
+
+const UploadedImagesList = () => {
+    const [files, setFiles] = useState([]); // metadata list
+    const [imageUrls, setImageUrls] = useState({}); // Filenames / Blob URLs
+    const [loadingImages, setLoadingImages] = useState({}); // Loadingstate per image
+
+    /** Fetch Image files (metadata only) on mount */
     useEffect(() => {
         const fetchFiles = async () => {
             try {
@@ -39,13 +44,20 @@ const UploadedImagesList = () => {
         };
     }, []);
 
+    /**
+    * Loads an individual image as a blob and creates a local URL
+    * Prevents duplicate loading if image is already loaded or loading
+    * 
+    * @param {string} filename - The filename to load from the server
+    */
     const loadImage = async (filename) => {
+        // Skip if already loaded/loading
         if (imageUrls[filename] || loadingImages[filename]) return;
 
-        console.log(`Loading image: ${filename}`); // Debug which image is being loaded
         setLoadingImages(prev => ({ ...prev, [filename]: true }));
 
         try {
+            // Fetch image as blob
             const response = await apiRequestBlob('GET', `/images/download/${filename}`);
 
             console.log('Response status:', response.status);
@@ -61,7 +73,7 @@ const UploadedImagesList = () => {
             if (response.data.size === 0) {
                 throw new Error('Received empty file');
             }
-
+            // Create blob URL for displaying in <img> tag
             const url = window.URL.createObjectURL(response.data);
             console.log(`Created blob URL for ${filename}:`, url); // Debug confirm blob creation
 

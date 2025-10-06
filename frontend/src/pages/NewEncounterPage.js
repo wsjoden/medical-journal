@@ -1,3 +1,10 @@
+/**
+ * New Encounter Page
+ * 
+ * Form page for doctors and staff to create new encounters for patients.
+ * 
+ */
+
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/NewEncounterPage.css';
@@ -13,17 +20,19 @@ function NewEncounterPage() {
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        const encounterData = { encounterDate: date, reason, notes, patientId: id };
-        console.log('Encounter Data:', encounterData);
-        console.log('User Role:', role);
+        e.preventDefault(); // Prevent page reload
+        const encounterData = {
+            encounterDate: date,
+            reason,
+            notes,
+            patientId: id // Get id from URL
+        };
         apiRequest('POST', `/encounters/new/patient/${id}`, encounterData)
             .then(response => {
-                console.log('Encounter created:', response.data);
                 if (role === 'doctor') {
-                    navigate(`/patient/${id}`);
+                    navigate(`/patient/${id}`); // Doctor go to patient profile
                 } else {
-                    navigate(`/patient`);
+                    navigate(`/patient`);   // Other staff go to patient list
                 }
             })
             .catch(error => {

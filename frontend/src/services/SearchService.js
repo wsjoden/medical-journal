@@ -17,6 +17,7 @@ async function fetchSearchResults(searchTerm, filters = {}) {
             queryParams.append('genericSearch', searchTerm);
         }
 
+        // Add all filter parameters if they exist
         if (filters.genericSearch) queryParams.append('genericSearch', filters.genericSearch);
         if (filters.firstName) queryParams.append('firstName', filters.firstName);
         if (filters.lastName) queryParams.append('lastName', filters.lastName);

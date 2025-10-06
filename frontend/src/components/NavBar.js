@@ -1,3 +1,15 @@
+/**
+ * Navigation Bar Component
+ * 
+ * Responsive Bootstrap navbar that changes based on user authentication and role.
+ * Displays different navigation options for patients, doctors, and other staff.
+ * 
+ * Roles and their navigation:
+ * - Patient: Profile, Inbox, Images, My Records
+ * - Doctor: Dashboard, Profile, Inbox, Images, Patients list
+ * - Other Staff: Dashboard, Profile, Inbox, Images, Patients list
+ */
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Navbar, Nav, Container } from 'react-bootstrap';
@@ -5,12 +17,16 @@ import { useAuth } from "../services/AuthContext";
 import '../styles/NavBar.css';
 
 
+/**
+ * Navigation for logged-out users
+ * Shows only login/register option
+ */
 function LoggedOutNav() {
     const { login } = useAuth();
 
     const handleLoginClick = (e) => {
         e.preventDefault();
-        login();
+        login(); // Redirects to Keycloak
     };
 
     return (
@@ -22,6 +38,10 @@ function LoggedOutNav() {
     );
 }
 
+/**
+ * Navigation for Patients
+ * Shows profile, inbox, images, and medical records
+ */
 function PatientNav({ onLogout, userInfo }) {
     return (
         <Nav className="ms-auto">
@@ -39,6 +59,10 @@ function PatientNav({ onLogout, userInfo }) {
     );
 }
 
+/**
+ * Navigation for Doctors
+ * Shows profile, dashboard, inbox, images, and patient list
+ */
 function DoctorNav({ onLogout, userInfo }) {
     return (
         <Nav className="ms-auto">
@@ -56,6 +80,10 @@ function DoctorNav({ onLogout, userInfo }) {
     );
 }
 
+/**
+ * Navigation for Doctors
+ * Shows profile, inbox, images, and patient list
+ */
 function OtherStaffNav({ onLogout, userInfo }) {
     return (
         <Nav className="ms-auto">
@@ -73,6 +101,10 @@ function OtherStaffNav({ onLogout, userInfo }) {
     );
 }
 
+/**
+ * Main Navigation Bar Component
+ * Renders different navigation based on authentication status and user role
+ */
 function NavBar() {
     const { isLoggedIn, role, logout, loading, userInfo } = useAuth();
     const navigate = useNavigate();
@@ -81,6 +113,7 @@ function NavBar() {
         logout();
     };
 
+    // Show loading state while authentication is being checked
     if (loading) {
         return (
             <Navbar className="custom-navbar" expand="lg">
@@ -93,9 +126,6 @@ function NavBar() {
             </Navbar>
         );
     }
-
-    console.log('NavBar - Role from AuthContext:', role);
-    console.log('NavBar - Is logged in:', isLoggedIn);
 
     return (
         <Navbar className="custom-navbar" expand="lg">

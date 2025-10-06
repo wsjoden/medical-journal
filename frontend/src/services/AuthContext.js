@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
     const isInitialized = useRef(false);
     const hasProcessedLogin = useRef(false);
 
+    // Fetches full profile from backend and syncs it with Keycloak
     const fetchUserProfile = useCallback(async (token) => {
         try {
             const res = await fetch(`${process.env.REACT_APP_USER_SERVICE_URL}/user/profile`, {
@@ -43,6 +44,9 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    /**
+     * Extracts user info, determines role, and redirects appropriately
+     */
     const handleSuccessfulLogin = useCallback((kc) => {
 
         if (hasProcessedLogin.current) {
@@ -52,26 +56,12 @@ export const AuthProvider = ({ children }) => {
 
         hasProcessedLogin.current = true;
 
-        console.log("=== LOGIN DEBUG ===");
-        console.log("Current URL:", window.location.href);
-        console.log("Current path:", window.location.pathname);
-        console.log("Has code param:", window.location.search.includes("code="));
-        console.log("Has hash code:", window.location.hash.includes("code="));
-
         const decodedToken = kc.tokenParsed;
-        console.log('Decoded token:', decodedToken);
-        console.log('Full token info:', {
-            userId: decodedToken?.sub,
-            username: decodedToken?.preferred_username,
-            email: decodedToken?.email,
-            realmRoles: decodedToken?.realm_access?.roles || [],
-            role: decodedToken?.role
-        });
 
         const role = decodedToken?.role;
         setUserRoles(role);
 
-        // Determine primary role for your medical system
+        // Determine Role
         let primaryRole = "Unknown";
         if (role) {
             const normalizedRole = role.toLowerCase().replace(/\s+/g, '_');
@@ -102,7 +92,7 @@ export const AuthProvider = ({ children }) => {
         // Fetch & sync user from backend
         fetchUserProfile(kc.token);
 
-        // Single redirect method - only if we're on login or home page
+        // Redirect to profile if on home or login page
         const currentPath = window.location.pathname;
         if (currentPath === '/' || currentPath === '/login') {
             console.log("Redirecting to profile");
@@ -113,7 +103,10 @@ export const AuthProvider = ({ children }) => {
         }
 
     }, [fetchUserProfile, navigate]);
-
+    /**
+    * Initialize Keycloak on mount
+    * Uses 'check-sso' mode to allow app to load without forcing login
+    */
     useEffect(() => {
 
         if (isInitialized.current) {
@@ -230,7 +223,11 @@ export const AuthProvider = ({ children }) => {
         </AuthContext.Provider>
     );
 };
-
+/**
+ * Connect to AuthContext
+ * @returns {Object} Authentication state and methods
+ * @throws {Error} If used outside AuthProvider
+ */
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {

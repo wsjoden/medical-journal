@@ -1,3 +1,14 @@
+/**
+ * App.jsx - Main Application Entry Point
+ * 
+ * Root application file that sets up routing and authentication.
+ * Defines all routes with appropriate role-based access control.
+ * 
+ * Security:
+ * Uses AuthProvider context to wrap entire app, providing auth state to all components.
+ * ProtectedRoute component enforces role-based access control on sensitive routes.
+ */
+
 import '../styles/App.css';
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';

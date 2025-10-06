@@ -1,3 +1,11 @@
+/**
+ * Patient Details Page
+ * 
+ * Detailed view of a patient's medical information.
+ * Displays current diagnosis, observations, encounters, and diagnosis history.
+ * 
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import '../styles/PatientDetailsPage.css';
@@ -6,13 +14,17 @@ import { useAuth } from '../services/AuthContext';
 import { format } from 'date-fns';
 
 function PatientDetailsPage() {
-    const { id } = useParams();
+    const { id } = useParams(); // Patient ID from URL
     const { userInfo, role, loading: authLoading } = useAuth(); // Use correct property names
     const [patient, setPatient] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
+    /**
+     * Fetches patient details including all medical records
+     * Runs on mounts or patient ID changes
+     */
     useEffect(() => {
         apiRequest('GET', `/user/details/${id}`, {})
             .then(response => {

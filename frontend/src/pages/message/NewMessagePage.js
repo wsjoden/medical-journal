@@ -1,3 +1,11 @@
+/**
+ * New Message Page
+ * 
+ * Form page for sending a new message to start a conversation.
+ * After sending, redirects to the newly created conversation thread.
+ * 
+ */
+
 import '../../styles/NewMessagePage.css';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +27,10 @@ function NewMessagePage({ userId }) {
         }
     }, [isLoggedIn, navigate]);
 
+    /**
+    * Sends new message and creates conversation
+    * Redirects to conversation page after successful send
+    */
     const handleSendMessage = (e) => {
         e.preventDefault();
 
@@ -30,16 +42,12 @@ function NewMessagePage({ userId }) {
             return;
         }
 
-        // Prepare the message data
+        // Prepare the message payload
         const messageData = { receiverUsername: recipient, message: message };
 
-        // Log the message data to verify it's being set correctly
-        console.log("Sending messageData:", messageData);
-
-        // Send the message with the token for authentication
+        // Send message - backend creates new conversation and returns conversation ID
         apiRequest('POST', '/messages/new', messageData, token)
             .then(response => {
-                console.log("Message sent successfully:", response.data);
                 // Redirect to the conversation page on success
                 navigate(`/conversation/${response.data.conversationId}`);
             })

@@ -1,3 +1,11 @@
+/**
+ * Home Page
+ * 
+ * Can be access without authentication
+ * 
+ */
+
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { apiRequest } from "../services/RESTService";
@@ -7,14 +15,15 @@ function HomePage() {
 
     const [message, setMessage] = React.useState('');
 
+    // Test to that let you ping the backend microservices
     const handleServiceTest = (url) => {
         apiRequest('get', url)
             .then(response => {
-                setMessage(response.data);  // Set the response message
+                setMessage(response.data);
             })
             .catch(error => {
                 console.error("Error calling the service:", error);
-                setMessage("Failed to reach the service.");  // Set an error message
+                setMessage("Failed to reach the service.");
             });
     };
 

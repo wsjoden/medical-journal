@@ -1,3 +1,25 @@
+/**
+ * Toolbox Component
+ * 
+ * Provides editing tools for the image editor canvas.
+ * Sidebar with buttons for adding images, text, drawing, applying filters, and downloading.
+ * 
+ * Features:
+ * - Image upload and placement on canvas
+ * - Text tool for adding editable text
+ * - Drawing mode toggle for freehand drawing
+ * - Image filters (grayscale, invert, sepia, vintage, polaroid)
+ * - Download edited image as PNG
+ * 
+ * Props:
+ * @param {Object} canvas - Fabric.js canvas instance
+ * @param {string|null} currentFilter - Currently active filter type
+ * @param {Function} setCurrentFilter - Updates active filter
+ * 
+ * Main Author/Source:
+ * https://blog.logrocket.com/build-image-editor-fabric-js-v6/
+ */
+
 import { library } from '@fortawesome/fontawesome-svg-core';
 import {
     faImage,
@@ -8,10 +30,11 @@ import {
     faDownload
 } from '@fortawesome/free-solid-svg-icons';
 
-import {Image, IText, filters} from 'fabric';
+import { Image, IText, filters } from 'fabric';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
+// Register FontAwesome icons for use in component
 library.add(faImage, faFont, faPencil, faFilter, faTrash, faDownload);
 
 const Toolbox = ({ canvas, currentFilter, setCurrentFilter }) => {
@@ -20,23 +43,29 @@ const Toolbox = ({ canvas, currentFilter, setCurrentFilter }) => {
         const reader = new FileReader();
 
         reader.onload = async (e) => {
+            // Create Fabric image from uploaded file
             const image = await Image.fromURL(e.target.result);
-            image.scale(0.5);
+            image.scale(0.5); // Scale to 50% size
             canvas.add(image);
-            canvas.centerObject(image);
-            canvas.setActiveObject(image);
+            canvas.centerObject(image); // Position in center
+            canvas.setActiveObject(image); // Auto-select the new image
         };
+        // Read file as Data URL (base64)
         reader.readAsDataURL(file);
         e.target.value = '';
     }
 
+    /**
+   * Applies selected filter to the active image object
+   * Watches currentFilter changes and updates the canvas
+   */
     useEffect(() => {
-        if(!canvas ||
+        if (!canvas ||
             !canvas.getActiveObject() ||
             !canvas.getActiveObject().isType('image')) return;
 
         function getSelectedFilter() {
-            switch(currentFilter) {
+            switch (currentFilter) {
                 case 'sepia':
                     return new filters.Sepia();
                 case 'vintage':
@@ -54,13 +83,14 @@ const Toolbox = ({ canvas, currentFilter, setCurrentFilter }) => {
         const filter = getSelectedFilter();
         const img = canvas.getActiveObject();
 
-        img.filters=filter ? [filter] : [];
+        // Apply filter or clear filters if null
+        img.filters = filter ? [filter] : [];
         img.applyFilters();
         canvas.renderAll();
     }, [currentFilter, canvas]);
 
     const [drawingMode, setDrawingMode] = useState(false);
-
+    // Toggles drawing mode on/off
     function toggleDrawingMode() {
         canvas.isDrawingMode = !canvas.isDrawingMode;
         setDrawingMode(canvas.isDrawingMode);
@@ -83,25 +113,25 @@ const Toolbox = ({ canvas, currentFilter, setCurrentFilter }) => {
     return (
         <div className="toolbox">
             <button title="Add image">
-                <FontAwesomeIcon icon="image"/>
+                <FontAwesomeIcon icon="image" />
                 <input
                     type="file"
                     accept=".png, .jpg, .jpeg"
-                    onChange={fileHandler}/>
+                    onChange={fileHandler} />
             </button>
 
             <button title="Add text" onClick={addText}>
-                <FontAwesomeIcon icon="font"/>
+                <FontAwesomeIcon icon="font" />
             </button>
 
             <button title="Drawing mode" onClick={toggleDrawingMode} className={drawingMode ? 'active' : ''}>
-                <FontAwesomeIcon icon="pencil"/>
+                <FontAwesomeIcon icon="pencil" />
             </button>
 
             <button title="Filters"
-                    onClick={() => setCurrentFilter(currentFilter ? null : 'grayscale')}
-                    className={currentFilter ? 'active' : ''}>
-                <FontAwesomeIcon icon="filter"/>
+                onClick={() => setCurrentFilter(currentFilter ? null : 'grayscale')}
+                className={currentFilter ? 'active' : ''}>
+                <FontAwesomeIcon icon="filter" />
             </button>
             {currentFilter &&
                 <select onChange={(e) => setCurrentFilter(e.target.value)} value={currentFilter}>
@@ -111,7 +141,7 @@ const Toolbox = ({ canvas, currentFilter, setCurrentFilter }) => {
             }
 
             <button title="Download as image" onClick={downloadImage}>
-                <FontAwesomeIcon icon="download"/>
+                <FontAwesomeIcon icon="download" />
             </button>
 
         </div>

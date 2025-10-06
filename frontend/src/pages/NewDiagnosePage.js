@@ -1,3 +1,10 @@
+/**
+ * New Diagnosis Page
+ * 
+ * Form page for doctors and staff to create new diagnoses for patients.
+ * 
+ */
+
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../styles/NewDiagnosePage.css';
@@ -5,22 +12,29 @@ import { apiRequest } from '../services/RESTService';
 import { useAuth } from '../services/AuthContext';
 
 function NewDiagnosePage() {
-    const { id } = useParams();
+    const { id } = useParams(); // Extract patient ID from URL
     const { role } = useAuth();
     const [diagnose, setDiagnose] = useState('');
     const [details, setDetails] = useState('');
     const navigate = useNavigate();
 
+    /**
+     * Handles form submission to create new diagnosis
+     * Redirects based on role after successful creation
+     */
     const handleSubmit = (e) => {
-        e.preventDefault();
-        const diagnosisData = { diagnose, details, patientId: id };
+        e.preventDefault(); // Prevent page reload
+        const diagnosisData = {
+            diagnose,
+            details,
+            patientId: id   // Get id from URL
+        };
         apiRequest('POST', `/diagnoses/new/patient/${id}`, diagnosisData)
             .then(response => {
-                console.log('Diagnosis created:', response.data);
                 if (role === 'doctor') {
-                    navigate(`/patient/${id}`);
+                    navigate(`/patient/${id}`); // Doctor go to patient profile
                 } else {
-                    navigate(`/patient`);
+                    navigate(`/patient`);   // Other staff go to patient list
                 }
             })
             .catch(error => {

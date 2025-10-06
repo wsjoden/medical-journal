@@ -1,3 +1,11 @@
+/**
+ * Protected Route Component
+ * 
+ * Route wrapper that enforces authentication and role-based access control.
+ * Prevents unauthorized users from accessing protected pages.
+ *
+ */
+
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../services/AuthContext';
