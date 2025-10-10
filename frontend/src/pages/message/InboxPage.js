@@ -13,6 +13,7 @@ import { apiRequest } from '../../services/RESTService';
 function InboxPage() {
     const [conversations, setConversations] = useState([]);
     const navigate = useNavigate();
+    const { userInfo } = useAuth();
 
     // Navigates to new message creation page
     const handleNewMessageClick = () => {
@@ -45,7 +46,7 @@ function InboxPage() {
                 {conversations.map((conversation, index) => (
                     <div key={index} className="conversation-item" onClick={() => handleConversationClick(conversation.id)}>
                         <div className="conversation-participants">
-                            {conversation.user1} & {conversation.user2}
+                            {userInfo?.userName} & {conversation.participant}
                         </div>
                         <div className="conversation-last-message">
                             {conversation.messages.length > 0 ? conversation.messages[conversation.messages.length - 1] : "No messages yet"}
