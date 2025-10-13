@@ -16,9 +16,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from "../services/AuthContext";
 import NavBar from "../components/NavBar";
 import Home from "./HomePage";
-import LoginPage from "./LoginPage";
 import PatientPage from "./PatientPage";
-import RegisterPage from "./RegisterPage";
 import DashboardPage from "./DashboardPage";
 import PatientDetailsPage from "./PatientDetailsPage";
 import NewObservationPage from "./NewObservationPage";
@@ -43,8 +41,6 @@ function App() {
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/patient" element={<PatientPage />} />
-                            <Route path="/login" element={<LoginPage />} />
-                            <Route path="/register" element={<RegisterPage />} />
 
                             {/*Logged on users only */}
                             <Route element={<ProtectedRoute />}>
