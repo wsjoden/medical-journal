@@ -8,6 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/InboxPage.css';
+import { useAuth } from '../../services/AuthContext';
 import { apiRequest } from '../../services/RESTService';
 
 function InboxPage() {
